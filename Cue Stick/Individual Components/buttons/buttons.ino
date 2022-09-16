@@ -1,52 +1,68 @@
-// Code for testing button inputs
-#include <stdint.h>
+/*
+ * This ESP32 code is created by esp32io.com
+ *
+ * This ESP32 code is released in the public domain
+ *
+ * For more detail (instruction and wiring diagram), visit https://esp32io.com/tutorials/esp32-button-toggle-led
+ */
 
-// struct for button
-struct Button
-{
-  const uint8_t PIN_;
-  bool pressed_;
-  uint8_t secondsHeld_;
-  uint64_t buttonTime_;
-  uint64_t lastButtonTime_;
+#define UP_PIN 19
+#define DOWN_PIN 18
+#define LEFT_PIN 17
+#define RIGHT_PIN 16
+
+struct Button{
+  int pin_;
+  int button_state_;       // the current state of button
+  int last_button_state_;  // the previous state of button
 };
 
-// instantiate buttons
-Button ButtonUp = {1, false, 0 , 0, 0};
-Button ButtonDown = {2, false, 0, 0, 0};
-Button ButtonLeft = {3, false, 0, 0, 0};
-Button ButtonRight = {4, false, 0, 0, 0};
-Button ButtonA = {5, false, 0, 0, 0};
-Button ButtonB = {6, false, 0, 0, 0};
+Button buttonUp = {19, 0, 0};
+Button buttonDown = {18, 0, 0};
+Button buttonLeft = {17, 0, 0};
+Button buttonRight = {16, 0, 0};
 
-void setup(void)
-{
-  // initialize buttons as inputs
-  pinMode(ButtonUp.PIN_, INPUT_PULLUP);
-  pinMode(ButtonDown.PIN_, INPUT_PULLUP);
-  pinMode(ButtonLeft.PIN_, INPUT_PULLUP);
-  pinMode(ButtonRight.PIN_, INPUT_PULLUP);
-  pinMode(ButtonA.PIN_, INPUT_PULLUP);
-  pinMode(ButtonB.PIN_, INPUT_PULLUP);
+void setup() {
+  Serial.begin(9600);                // initialize serial
 
-  // attach interrupt to button
-  attachInterrupt(ButtonUp.PIN_, InterruptButtonUp, RISING);
+  // Set pin mode
+  pinMode(buttonUp.pin_, INPUT_PULLUP);
+  pinMode(buttonDown.pin_, INPUT_PULLUP);
+  pinMode(buttonLeft.pin_, INPUT_PULLUP);
+  pinMode(buttonRight.pin_, INPUT_PULLUP);
 
-  Serial.begin(9600);
+
+  // Set button state
+  buttonUp.button_state_ = digitalRead(buttonUp.pin_);
+  buttonDown.button_state_ = digitalRead(buttonDown.pin_);
+  buttonLeft.button_state_ = digitalRead(buttonLeft.pin_);
+  buttonRight.button_state_ = digitalRead(buttonRight.pin_);
+  
 }
 
-void loop()
-{
-}
+void loop() {
+  buttonUp.last_button_state_ = buttonUp.button_state_;      // save the last state
+  buttonUp.button_state_ = digitalRead(buttonUp.pin_); // read new state
+  
+  buttonDown.last_button_state_ = buttonDown.button_state_;      // save the last state
+  buttonDown.button_state_ = digitalRead(buttonDown.pin_); // read new state
 
-void InterruptButtonUp()
-{
-  ButtonUp.buttonTime_ = millis();
-      
-  // debounce
-  if (ButtonUp.buttonTime_ - buttonUp.lastButtonTime_ > 250)
-  {
-    Serial.print("UP\n");
-    buttonUp.lastButtonTime_ = ButtonUp.buttonTime_;
+  buttonLeft.last_button_state_ = buttonLeft.button_state_;      // save the last state
+  buttonLeft.button_state_ = digitalRead(buttonLeft.pin_); // read new state
+  
+  buttonRight.last_button_state_ = buttonRight.button_state_;      // save the last state
+  buttonRight.button_state_ = digitalRead(buttonRight.pin_); // read new state
+
+  if (buttonUp.last_button_state_ == HIGH && buttonUp.button_state_ == LOW) {
+    Serial.println("Up is pressed");
+  }
+  if (buttonDown.last_button_state_ == HIGH && buttonDown.button_state_ == LOW) {
+    Serial.println("Down is pressed");
+  }
+  if (buttonLeft.last_button_state_ == HIGH && buttonLeft.button_state_ == LOW) {
+    Serial.println("Left is pressed");
+  }
+  if (buttonRight.last_button_state_ == HIGH && buttonRight.button_state_ == LOW) {
+    Serial.println("Right is pressed");
   }
 }
