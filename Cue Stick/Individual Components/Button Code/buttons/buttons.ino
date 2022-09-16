@@ -6,10 +6,12 @@
  * For more detail (instruction and wiring diagram), visit https://esp32io.com/tutorials/esp32-button-toggle-led
  */
 
-#define UP_PIN 19
-#define DOWN_PIN 18
-#define LEFT_PIN 17
-#define RIGHT_PIN 16
+#define UP_PIN 18
+#define DOWN_PIN 19
+#define LEFT_PIN 16
+#define RIGHT_PIN 17
+#define A_PIN 5
+#define B_PIN 4
 
 struct Button{
   int pin_;
@@ -17,10 +19,12 @@ struct Button{
   int last_button_state_;  // the previous state of button
 };
 
-Button buttonUp = {19, 0, 0};
-Button buttonDown = {18, 0, 0};
-Button buttonLeft = {17, 0, 0};
-Button buttonRight = {16, 0, 0};
+Button buttonUp = {UP_PIN, 0, 0};
+Button buttonDown = {DOWN_PIN, 0, 0};
+Button buttonLeft = {LEFT_PIN, 0, 0};
+Button buttonRight = {RIGHT_PIN, 0, 0};
+Button buttonA = {A_PIN, 0, 0};
+Button buttonB = {B_PIN, 0, 0};
 
 void setup() {
   Serial.begin(9600);                // initialize serial
@@ -30,6 +34,8 @@ void setup() {
   pinMode(buttonDown.pin_, INPUT_PULLUP);
   pinMode(buttonLeft.pin_, INPUT_PULLUP);
   pinMode(buttonRight.pin_, INPUT_PULLUP);
+  pinMode(buttonA.pin_, INPUT_PULLUP);
+  pinMode(buttonB.pin_, INPUT_PULLUP);
 
 
   // Set button state
@@ -37,6 +43,8 @@ void setup() {
   buttonDown.button_state_ = digitalRead(buttonDown.pin_);
   buttonLeft.button_state_ = digitalRead(buttonLeft.pin_);
   buttonRight.button_state_ = digitalRead(buttonRight.pin_);
+  buttonA.button_state_ = digitalRead(buttonA.pin_);
+  buttonB.button_state_ = digitalRead(buttonB.pin_);
   
 }
 
@@ -52,6 +60,12 @@ void loop() {
   
   buttonRight.last_button_state_ = buttonRight.button_state_;      // save the last state
   buttonRight.button_state_ = digitalRead(buttonRight.pin_); // read new state
+  
+  buttonA.last_button_state_ = buttonA.button_state_;      // save the last state
+  buttonA.button_state_ = digitalRead(buttonA.pin_); // read new state
+  
+  buttonB.last_button_state_ = buttonB.button_state_;      // save the last state
+  buttonB.button_state_ = digitalRead(buttonB.pin_); // read new state
 
   if (buttonUp.last_button_state_ == HIGH && buttonUp.button_state_ == LOW) {
     Serial.println("Up is pressed");
@@ -64,5 +78,11 @@ void loop() {
   }
   if (buttonRight.last_button_state_ == HIGH && buttonRight.button_state_ == LOW) {
     Serial.println("Right is pressed");
+  }
+  if (buttonA.last_button_state_ == HIGH && buttonA.button_state_ == LOW) {
+    Serial.println("A is pressed");
+  }
+  if (buttonB.last_button_state_ == HIGH && buttonB.button_state_ == LOW) {
+    Serial.println("B is pressed");
   }
 }
