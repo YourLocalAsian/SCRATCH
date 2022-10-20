@@ -2,11 +2,13 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+#include <typeinfo>
 
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
 
 double calData[4];
+uint8_t zeroedOut;
 
 void setup(void)
 {
@@ -36,7 +38,7 @@ void setup(void)
   Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
 
   delay(5);
-  zeroOut();
+  zeroedOut = 0;
 }
 
 void loop(void)
@@ -56,48 +58,44 @@ void loop(void)
   quat.normalize();
   imu::Vector<3> euler = quat.toEuler();
 
-  double yy = quat.y() * quat.y(); // 2 Uses below
-  double roll = atan2(2 * (quat.w() * quat.x() + quat.y() * quat.z()), 1 - 2*(quat.x() * quat.x() + yy));
-  double pitch = asin(2 * quat.w() * quat.y() - quat.x() * quat.z());
-  double yaw = atan2(2 * (quat.w() * quat.z() + quat.x() * quat.y()), 1 - 2*(yy+quat.z() * quat.z()));
-
-  /* Display the floating point data */
-  Serial.print("Acceleration: ");
-  Serial.print(acc.x() - calData[0]);
-  Serial.print(" Roll: ");
-  Serial.print(-180/M_PI * euler.z(), 0);
-  Serial.print(" Pitch: ");
-  Serial.print(180/M_PI * euler.y(), 0);
-  Serial.print(" Yaw: ");
-  Serial.print(180/M_PI * euler.x(), 0);
-
-  /*
-  // Quaternion data
-  imu::Quaternion quat = bno.getQuat();
-  Serial.print("qW: ");
-  Serial.print(quat.w(), 4);
-  Serial.print(" qX: ");
-  Serial.print(quat.x(), 4);
-  Serial.print(" qY: ");
-  Serial.print(quat.y(), 4);
-  Serial.print(" qZ: ");
-  Serial.print(quat.z(), 4);
-  */
-  Serial.println("\t\t");
-  
-  /*
-  // Display calibration status for each sensor.
-  uint8_t system, gyro, accel, mag = 0;
-  bno.getCalibration(&system, &gyro, &accel, &mag);
-  Serial.print("CALIBRATION: Sys=");
-  Serial.print(system, DEC);
-  Serial.print(" Gyro=");
-  Serial.print(gyro, DEC);
-  Serial.print(" Accel=");
-  Serial.print(accel, DEC);
-  Serial.print(" Mag=");
-  Serial.println(mag, DEC);
-  */
+  if (zeroedOut < 20)
+  {
+    double roll = -180/M_PI * euler.z();
+    double pitch = 180/M_PI * euler.y();
+    double yaw = 180/M_PI * euler.x();
+    Serial.printf("Roll = %lf\n", roll);
+    if (!isnan(roll))
+    {
+      calData[0] += acc.x();
+      calData[1] += roll;
+      calData[2] += pitch;
+      calData[3] += yaw;
+      Serial.printf("zeroedOut = %d\n", zeroedOut);
+      zeroedOut++;
+    }
+  }
+  else if (zeroedOut == 20)
+  {
+    calData[0] /= 20;
+    calData[1] /= 20;
+    calData[2] /= 20;
+    calData[3] /= 20;
+    Serial.printf("Roll: %lf, Pitch: %lf, Yaw: %lf\n", calData[1], calData[2], calData[3]);
+    zeroedOut++;
+  }
+  else
+  {
+     /* Display the floating point data */
+    Serial.print("Acceleration: ");
+    Serial.print(acc.x() - calData[0]);
+    Serial.print(" Roll: ");
+    Serial.print(-180/M_PI * (double) euler.z() - calData[1], 0);
+    Serial.print(" Pitch: ");
+    Serial.print(180/M_PI * (double) euler.y() - calData[2], 0);
+    Serial.print(" Yaw: ");
+    Serial.print(180/M_PI * (double) euler.x() - calData[3], 0);
+    Serial.println("\t\t");
+  }
 
   delay(BNO055_SAMPLERATE_DELAY_MS);
 }
@@ -118,6 +116,7 @@ void zeroOut()
     
 
     calData[0] += acc.x();
+    Serial.printf("Acc add: %lf\n", calData[1]);
     calData[1] += 180/M_PI * euler.z();
     Serial.printf("Roll add: %lf\n", calData[1]);
     calData[2] += 180/M_PI * euler.y();
