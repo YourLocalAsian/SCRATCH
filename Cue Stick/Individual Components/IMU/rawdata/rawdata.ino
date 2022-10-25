@@ -39,6 +39,7 @@ void setup(void)
 
   delay(5);
   zeroedOut = 0;
+  //formatPrint(0,1,-1,2);
 }
 
 void loop(void)
@@ -132,4 +133,23 @@ void zeroOut()
     Serial.printf("Offset #%d: %lf\n", i, calData[i]);
   }
     
+}
+
+void formatPrint(double acceleration, double roll, double pitch, double yaw)
+{
+  // Print orientation
+    // Convert doubles to integer
+    int rollInteger = (int) roll;
+    int pitchInteger = (int) pitch;
+    int yawInteger = (int) yaw;
+
+    uint32_t output1 = 0x1 << 31;
+    output1 = output1 | (rollInteger & 0x1FF) << 21; // store roll
+    output1 = output1 | (pitchInteger & 0x1FF) << 12; // store pitch
+    output1 = output1 | (yawInteger & 0x1FF) << 3; // store yaw
+    output1 = output1 | 0x1;
+
+    Serial.printf("Output: %32b", output1);
+    
+  // Print acceleration data
 }
