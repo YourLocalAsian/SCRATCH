@@ -88,13 +88,13 @@ void loop(void)
   {
      /* Display the floating point data */
     Serial.print("Acceleration: ");
-    Serial.print(acc.x() - calData[0]);
+    Serial.print(-(acc.x() - calData[0]));
     Serial.print(" Roll: ");
     Serial.print(-180/M_PI * (double) euler.z() - calData[1], 0);
     Serial.print(" Pitch: ");
     Serial.print(180/M_PI * (double) euler.y() - calData[2], 0);
     Serial.print(" Yaw: ");
-    Serial.print(180/M_PI * (double) euler.x() - calData[3], 0);
+    Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 0);
     Serial.println("\t\t");
   }
 
