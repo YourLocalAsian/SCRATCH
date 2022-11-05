@@ -10,6 +10,13 @@ Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
 double calData[4];
 uint8_t zeroedOut;
 
+unsigned long newTime = 0;
+unsigned long oldTime = 0;
+unsigned long deltaTime = 0;
+double oldAccerlation = 0;
+double oldSpeed = 0;
+
+
 void setup(void)
 {
   Serial.begin(115200);
@@ -86,9 +93,19 @@ void loop(void)
   }
   else
   {
+    // Get current time
+    newTime = millis();
+    deltaTime = newTime - oldTime;
+
+    double avgAcceleration = (-(acc.x() - calData[0]) + oldAccerlation) / 2;
+    double newSpeed = oldSpeed + (avgAcceleration * deltaTime);
+    double avgSpeed = (oldSpeed + newSpeed) /2;
+    
      /* Display the floating point data */
+    //Serial.print("Speed: ");
+    //Serial.print(avgSpeed, 0);
     Serial.print("Acceleration: ");
-    Serial.print(-(acc.x() - calData[0]));
+    Serial.print(avgAcceleration, 0);
     Serial.print(" Roll: ");
     Serial.print(-180/M_PI * (double) euler.z() - calData[1], 0);
     Serial.print(" Pitch: ");
@@ -96,8 +113,13 @@ void loop(void)
     Serial.print(" Yaw: ");
     Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 0);
     Serial.println("\t\t");
+
+    // Store values
+    oldTime = newTime;
+    oldSpeed = avgSpeed;
   }
 
+  
   delay(BNO055_SAMPLERATE_DELAY_MS);
 }
 
