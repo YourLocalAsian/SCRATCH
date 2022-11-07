@@ -1,14 +1,21 @@
+#include <StandardCplusplus.h>
+#include <vector>
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 #include <typeinfo>
 
+
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
 
 double calData[4];
 uint8_t zeroedOut;
+std::vector<int> accelerationValues();
+bool shotAttempt = false;
+int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 
 unsigned long newTime = 0;
 unsigned long oldTime = 0;
@@ -100,18 +107,34 @@ void loop(void)
     double avgAcceleration = (-(acc.x() - calData[0]) + oldAccerlation) / 2;
     double newSpeed = oldSpeed + (avgAcceleration * deltaTime);
     double avgSpeed = (oldSpeed + newSpeed) /2;
+    if (avgAcceleration > 0) avgAcceleration = 0;
+    if (avgAcceleration < 0)
+    {
+      accelerationValues.push_back(avgAcceleration);
+      shotAttempt = true;
+    }
+
+    if (avgAcceleration == 0 && shotAttempt)
+    {
+      int minima = findGlobalMinima(accelerationValues);
+      accelerationValue.clear();
+      int mapped = mapAcceleration(minima, mapArray);
+      Serial.print("Mapped: ");
+      Serial.print(mapped, 0);
+    }
+
     
      /* Display the floating point data */
     //Serial.print("Speed: ");
     //Serial.print(avgSpeed, 0);
-    Serial.print("Acceleration: ");
+    Serial.print(" Acceleration: ");
     Serial.print(avgAcceleration, 0);
-    Serial.print(" Roll: ");
-    Serial.print(-180/M_PI * (double) euler.z() - calData[1], 0);
-    Serial.print(" Pitch: ");
-    Serial.print(180/M_PI * (double) euler.y() - calData[2], 0);
-    Serial.print(" Yaw: ");
-    Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 0);
+    //Serial.print(" Roll: ");
+    //Serial.print(-180/M_PI * (double) euler.z() - calData[1], 0);
+    //Serial.print(" Pitch: ");
+    //Serial.print(180/M_PI * (double) euler.y() - calData[2], 0);
+    //Serial.print(" Yaw: ");
+    //Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 0);
     Serial.println("\t\t");
 
     // Store values
@@ -136,7 +159,6 @@ void zeroOut()
     imu::Quaternion quat = bno.getQuat();
     quat.normalize();
     imu::Vector<3> euler = quat.toEuler();
-    
 
     calData[0] += acc.x();
     Serial.printf("Acc add: %lf\n", calData[1]);
@@ -174,4 +196,22 @@ void formatPrint(double acceleration, double roll, double pitch, double yaw)
     Serial.printf("Output: %32b", output1);
     
   // Print acceleration data
+}
+
+int findGlobalMinima(std::vector<int> accelerationValues)
+{
+  int minimum = 0;
+  for (int s : accelerationValues)
+    minimum = (s < minimum) ? s : minimum;
+  return s;
+}
+
+int mapAcceleration(int acceleration, int mapArray[])
+{
+  int mapped = 0;
+  for (int i = 0; i < 7; i++)
+  {
+    if (acceleration <= mapArray][i]) mapped = i;
+  }
+  return mapped;
 }
