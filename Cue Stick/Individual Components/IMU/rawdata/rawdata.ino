@@ -1,28 +1,39 @@
-#include <StandardCplusplus.h>
-#include <vector>
-
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 #include <typeinfo>
-
+#include <Vector.h>
+#include <cppQueue.h>
 
 #define BNO055_SAMPLERATE_DELAY_MS (100)
+#define MIN_ACC (-1000)
+#define MAX_ACC (1000)
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
+
+
+Vector<double> accelerationValues;
+double stationaryValues[10];
+int stationaryIndex = 0;
+bool isStationary = false;
+bool shotReady = false;
+double accOffset;
+double globalMinima = 0;
 
 double calData[4];
 uint8_t zeroedOut;
-std::vector<int> accelerationValues();
+
 bool shotAttempt = false;
 int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 
 unsigned long newTime = 0;
 unsigned long oldTime = 0;
 unsigned long deltaTime = 0;
-double oldAccerlation = 0;
+double oldAcceleration = 0;
 double oldSpeed = 0;
 
+double findGlobalMinima(Vector<double> accelerationValues);
+int mapAcceleration(double acceleration);
 
 void setup(void)
 {
@@ -100,48 +111,52 @@ void loop(void)
   }
   else
   {
-    // Get current time
-    newTime = millis();
-    deltaTime = newTime - oldTime;
+    double avgAcceleration = (-(acc.x() - calData[0]) + oldAcceleration) / 2; // smooth acceleration
 
-    double avgAcceleration = (-(acc.x() - calData[0]) + oldAccerlation) / 2;
-    double newSpeed = oldSpeed + (avgAcceleration * deltaTime);
-    double avgSpeed = (oldSpeed + newSpeed) /2;
-    if (avgAcceleration > 0) avgAcceleration = 0;
-    if (avgAcceleration < 0)
-    {
-      accelerationValues.push_back(avgAcceleration);
-      shotAttempt = true;
+    // Check if cue is stationary
+    stationaryValues[stationaryIndex] = avgAcceleration; // Store queue of 10 acceleration values
+    if (stationaryIndex == 9) { 
+      double minAcc = MAX_ACC;
+      double maxAcc = MIN_ACC;
+      for (int i = 0; i < 10; i++){
+        if (stationaryValues[i] < minAcc) minAcc = stationaryValues[i] < minAcc;
+        if (stationaryValues[i] > maxAcc) maxAcc = stationaryValues[i] < minAcc;
+      }
+      if (maxAcc - minAcc <= 1) isStationary = true; // if the min and max differenitate less than 0.5, set stationary to true
+      else isStationary = false;
     }
-
-    if (avgAcceleration == 0 && shotAttempt)
-    {
-      int minima = findGlobalMinima(accelerationValues);
-      accelerationValue.clear();
-      int mapped = mapAcceleration(minima, mapArray);
-      Serial.print("Mapped: ");
-      Serial.print(mapped, 0);
-    }
-
+    stationaryIndex = (stationaryIndex + 1) % 10;
+    
+    if (isStationary && shotReady && !accelerationValues.empty()) {// If stationary and shotReady, calculate maximum acceleration & set shotReady to false (shot complete)
+      Serial.println("Shot done");
+      globalMinima = findGlobalMinima(accelerationValues);
+      shotReady = false;
+      accelerationValues.clear();
+    } else if (isStationary & !shotReady) {// If stationary, set accOffset to current acceleration & set shotReady to true (ready to take shot)
+      Serial.println("Stationary");
+      accOffset = avgAcceleration;
+      globalMinima = avgAcceleration;
+      shotReady = true;
+    } else if (!isStationary && shotReady) {// Else if not stationary & shotReady, store acceleration values (taking shot)
+      Serial.println("Taking shot");
+      accelerationValues.push_back(avgAcceleration - accOffset);  
+    } else {}// Else wait for stationary (not ready)
     
      /* Display the floating point data */
-    //Serial.print("Speed: ");
-    //Serial.print(avgSpeed, 0);
     Serial.print(" Acceleration: ");
-    Serial.print(avgAcceleration, 0);
-    //Serial.print(" Roll: ");
-    //Serial.print(-180/M_PI * (double) euler.z() - calData[1], 0);
-    //Serial.print(" Pitch: ");
-    //Serial.print(180/M_PI * (double) euler.y() - calData[2], 0);
-    //Serial.print(" Yaw: ");
-    //Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 0);
+    Serial.print(avgAcceleration, 3);
+    Serial.print(" Minima: ");
+    Serial.print(globalMinima, 3);
+    /*Serial.print(" Roll: ");
+    Serial.print(-180/M_PI * (double) euler.z() - calData[1], 3);
+    Serial.print(" Pitch: ");
+    Serial.print(180/M_PI * (double) euler.y() - calData[2], 3);
+    Serial.print(" Yaw: ");
+    Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 3);*/
     Serial.println("\t\t");
 
-    // Store values
-    oldTime = newTime;
-    oldSpeed = avgSpeed;
+    oldAcceleration = avgAcceleration;
   }
-
   
   delay(BNO055_SAMPLERATE_DELAY_MS);
 }
@@ -198,20 +213,20 @@ void formatPrint(double acceleration, double roll, double pitch, double yaw)
   // Print acceleration data
 }
 
-int findGlobalMinima(std::vector<int> accelerationValues)
+double findGlobalMinima(Vector<double> accelerationValues)
 {
-  int minimum = 0;
+  double minimum = 0;
   for (int s : accelerationValues)
     minimum = (s < minimum) ? s : minimum;
-  return s;
+  return minimum;
 }
 
-int mapAcceleration(int acceleration, int mapArray[])
+int mapAcceleration(double acceleration, int mapArray[])
 {
   int mapped = 0;
   for (int i = 0; i < 7; i++)
   {
-    if (acceleration <= mapArray][i]) mapped = i;
+    if ((int) acceleration <= mapArray[i]) mapped = i;
   }
   return mapped;
 }
