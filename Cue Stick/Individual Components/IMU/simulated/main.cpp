@@ -73,7 +73,7 @@ double BNO055::readOrientationZ() {
 }
 
 std::vector<double> accelerationValues;
-double stationaryValues[10] = {-2, 2, -2, 2, -2, 2, -2, 2, -2, 2};
+double stationaryValues[10];
 double calData[4];
 int stationaryIndex = 0;
 
@@ -88,6 +88,8 @@ bool shotAttempt = false;
 int fmsState = 0;
 
 const int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
+std::string ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
+                            "FAST", "POWER", "BREAK", "POWER_BREAK"};
 
 unsigned long newTime = 0;
 unsigned long oldTime = 0;
@@ -99,24 +101,37 @@ void checkStationary(double avgAcceleration);
 double findGlobalMinima(std::vector<double> accelerationValues);
 int mapAcceleration(double acceleration);
 void loop(BNO055 imu);
+void floodStationary(int val);
+void setup();
+void loop();
 
 int main() {
-    std::cout << "Hello World!" << std::endl;
     BNO055 fakeIMU;
-    fmsState = 10;
-    zeroedOut = true;
-    isStationary = false;
-    
-    for (int i = 0; i < 30; i++) {
+    setup();
+    for (int i = 0; i < 50; i++) {
         std::cout << "Iteration: " << i << std::endl;
         if (i == 12) fakeIMU.setAcceleration(5);
         else if (i == 13) fakeIMU.setAcceleration(7);
         else if (i == 13) fakeIMU.setAcceleration(5);
         else if (i == 14) fakeIMU.setAcceleration(-3);
         else if (i == 15) fakeIMU.setAcceleration(1);
+
+        else if (i == 28) fakeIMU.setAcceleration(3);
+        else if (i == 29) fakeIMU.setAcceleration(5);
+        else if (i == 30) fakeIMU.setAcceleration(3);
+        else if (i == 31) fakeIMU.setAcceleration(1);
+        else if (i == 32) fakeIMU.setAcceleration(-3);
+        else if (i == 33) fakeIMU.setAcceleration(-100);
+        else if (i == 34) fakeIMU.setAcceleration(1);
         loop(fakeIMU);
     }
     return 0;
+}
+
+void setup() {
+    zeroedOut = true;
+    isStationary = false;
+    floodStationary(-100);
 }
 
 void loop(BNO055 imu) {
@@ -149,7 +164,8 @@ void loop(BNO055 imu) {
     }
    
     if (zeroedOut) { // If zeroedOut
-        double avgAcceleration = (-(acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
+        //double avgAcceleration = (-(acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
+        double avgAcceleration = acc[0] - calData[0];
 
         checkStationary(avgAcceleration); // Check if stick is stationary
 
@@ -158,7 +174,7 @@ void loop(BNO055 imu) {
             fmsState = 0;
         } else if (isStationary && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
             accelerationBase = avgAcceleration;
-            for (int i = 0; i < 10; i++) stationaryValues[i] = accelerationBase;
+            floodStationary(avgAcceleration);
             globalMinima = avgAcceleration;
             shotReady = true;
             fmsState = 1;
@@ -166,9 +182,14 @@ void loop(BNO055 imu) {
             fmsState = 2;
         } else if (!isStationary && shotReady) { // State 3: Not stationary, ready to take shot (taking shot) -> self
             accelerationValues.push_back(avgAcceleration - accelerationBase);  
+            //cout << "Pushed: " << avgAcceleration - accelerationBase << " (" << accelerationValues.size() << ")" << endl;
             fmsState = 3;
         } else if (isStationary && shotReady && !accelerationValues.empty()) {  // State 4: Stationary, ready to take shot (done taking shot) -> reset
-            accelerationValues.clear();
+            for (int i = 0; i < 9; i++) {
+                //cout << "Popping: " << accelerationValues.back() << endl;
+                accelerationValues.pop_back();
+            }
+            floodStationary(avgAcceleration);
             shotAttempt = true;
             shotReady = false;
             fmsState = 4;
@@ -179,24 +200,42 @@ void loop(BNO055 imu) {
     std::cout << "State: " << fmsState << std::endl;
     std::cout << "Stationary: " << (isStationary ? "True" : "False")  << std::endl;
     std::cout << "Shot Ready: " << (shotReady ? "True" : "False" )<< std::endl;
-    std::cout << "Shot Attempted: " << (shotAttempt ? "True" : "False") << std::endl;
 
     // Print stick data
-    std::cout << "A: " << acc[0] << std::endl;
-    std::cout << "R: " << ori[0];
-    std::cout << " P: " << ori[1];
-    std::cout << " Y: " << ori[2] << std::endl;
+    if (shotAttempt) {
+        double minima = findGlobalMinima(accelerationValues);
+        accelerationValues.clear();
+        int mapped = mapAcceleration(minima);
+        std::cout << "Minima: " << minima << ", Mapped: " << ballSpeed[mapped] << endl;
+        shotAttempt = false;
+    }
+
+    std::cout << "A: " << acc[0];
+    std::cout << ", R: " << ori[0];
+    std::cout << ", P: " << ori[1];
+    std::cout << ", Y: " << ori[2] << std::endl;
     std::cout << std::endl;
 
-    std::this_thread::sleep_for(0.5s);
+    std::this_thread::sleep_for(0.1s);
 }
 
 double findGlobalMinima(std::vector<double> accelerationValues) {
-    return 0.0;
+    double minimum = 0;
+    for (int s : accelerationValues) {
+        //cout << s << ", ";
+        minimum = (s < minimum) ? s : minimum;
+    }
+    //cout << endl;
+    
+    return minimum;
 }
 
 int mapAcceleration(double acceleration) {
-    return 0;
+    int mapped = 0;
+    for (int i = 0; i < 7; i++)
+        if ((int) acceleration <= mapArray[i]) mapped = i;
+    
+    return mapped;
 }
 
 void checkStationary(double avgAcceleration) {
@@ -211,4 +250,8 @@ void checkStationary(double avgAcceleration) {
 
     isStationary = (maxAcc - minAcc <= ACC_MARGIN) ? true : false; // if the min and max differenitate less than 0.5, set stationary to true
     stationaryIndex = (stationaryIndex + 1) % 10; // wrap around
+}
+
+void floodStationary(int val) {
+    for (int i = 0; i < 10; i++) stationaryValues[i] = val;    
 }
