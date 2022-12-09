@@ -9,6 +9,7 @@
 #include <vector>
 #include <thread>
 
+
 #define MIN_ACC -1000
 #define MAX_ACC 1000
 #define ACC_MARGIN 1
@@ -72,10 +73,12 @@ double BNO055::readOrientationZ() {
     return orientation[2];
 }
 
+// Global storage variables
 std::vector<double> accelerationValues;
 double stationaryValues[10];
 double calData[4];
 int stationaryIndex = 0;
+double oldAcceleration;
 
 // Global status variables
 int zeroCount;
@@ -87,23 +90,20 @@ double globalMinima = 0;
 bool shotAttempt = false;
 int fmsState = 0;
 
+// Mapping arrays
 const int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 std::string ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
                             "FAST", "POWER", "BREAK", "POWER_BREAK"};
 
-unsigned long newTime = 0;
-unsigned long oldTime = 0;
-unsigned long deltaTime = 0;
-double oldAcceleration = 0;
-double oldSpeed = 0;
+// Main functions
+void setup();
+void loop(BNO055 imu);
 
+// Supplementary functions
 void checkStationary(double avgAcceleration);
 double findGlobalMinima(std::vector<double> accelerationValues);
 int mapAcceleration(double acceleration);
-void loop(BNO055 imu);
 void floodStationary(int val);
-void setup();
-void loop();
 
 int main() {
     BNO055 fakeIMU;
@@ -128,12 +128,14 @@ int main() {
     return 0;
 }
 
+// Configures the simulation
 void setup() {
     zeroedOut = true;
     isStationary = false;
     floodStationary(-100);
 }
 
+// Main functionality of simulation
 void loop(BNO055 imu) {
     // Get accleration and orientation vectors
     double acc[3];
@@ -164,8 +166,7 @@ void loop(BNO055 imu) {
     }
    
     if (zeroedOut) { // If zeroedOut
-        //double avgAcceleration = (-(acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
-        double avgAcceleration = acc[0] - calData[0];
+        double avgAcceleration = ((acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
 
         checkStationary(avgAcceleration); // Check if stick is stationary
 
@@ -219,6 +220,7 @@ void loop(BNO055 imu) {
     std::this_thread::sleep_for(0.1s);
 }
 
+// Finds the strongest deceleration
 double findGlobalMinima(std::vector<double> accelerationValues) {
     double minimum = 0;
     for (int s : accelerationValues) {
@@ -230,6 +232,7 @@ double findGlobalMinima(std::vector<double> accelerationValues) {
     return minimum;
 }
 
+// Maps acceleration to meaningful value
 int mapAcceleration(double acceleration) {
     int mapped = 0;
     for (int i = 0; i < 7; i++)
@@ -238,6 +241,7 @@ int mapAcceleration(double acceleration) {
     return mapped;
 }
 
+// Checks if cue stick is stationary
 void checkStationary(double avgAcceleration) {
     stationaryValues[stationaryIndex] = avgAcceleration; // Store queue of 10 acceleration values
     double minAcc = MAX_ACC;
@@ -252,6 +256,7 @@ void checkStationary(double avgAcceleration) {
     stationaryIndex = (stationaryIndex + 1) % 10; // wrap around
 }
 
+// Resets stationary value array
 void floodStationary(int val) {
     for (int i = 0; i < 10; i++) stationaryValues[i] = val;    
 }
