@@ -4,7 +4,7 @@
 #include <utility/imumaths.h>
 #include <typeinfo>
 #include <Vector.h>
-#include <cppQueue.h>
+
 
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 #define MIN_ACC (-1000)
@@ -127,7 +127,7 @@ void loop(void)
     }
     stationaryIndex = (stationaryIndex + 1) % 10;
     
-    if (isStationary && shotReady && !accelerationValues.empty()) {// If stationary and shotReady, calculate maximum acceleration & set shotReady to false (shot complete)
+    if (isStationary && shotReady && accelerationValues.size() > 10) {// If stationary and shotReady, calculate maximum acceleration & set shotReady to false (shot complete)
       Serial.println("Shot done");
       globalMinima = findGlobalMinima(accelerationValues);
       shotReady = false;
@@ -137,10 +137,13 @@ void loop(void)
       accOffset = avgAcceleration;
       globalMinima = avgAcceleration;
       shotReady = true;
+      stationaryIndex = 0;
+      isStationary = false;
     } else if (!isStationary && shotReady) {// Else if not stationary & shotReady, store acceleration values (taking shot)
       Serial.println("Taking shot");
       accelerationValues.push_back(avgAcceleration - accOffset);  
-    } else {}// Else wait for stationary (not ready)
+    } else {
+      Serial.println("Waiting for stationary"); }// Else wait for stationary (not ready)
     
      /* Display the floating point data */
     Serial.print(" Acceleration: ");
