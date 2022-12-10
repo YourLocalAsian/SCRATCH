@@ -79,6 +79,7 @@ double stationaryValues[10];
 double calData[4];
 int stationaryIndex = 0;
 double oldAcceleration;
+double avgAcceleration;
 
 // Global status variables
 int zeroCount;
@@ -166,7 +167,7 @@ void loop(BNO055 imu) {
     }
    
     if (zeroedOut) { // If zeroedOut
-        double avgAcceleration = ((acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
+        avgAcceleration = ((acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
 
         checkStationary(avgAcceleration); // Check if stick is stationary
 
