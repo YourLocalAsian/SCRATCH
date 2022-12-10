@@ -151,20 +151,11 @@ void loop() {
         }
     }
 
-    /*
-    // Print status variables
-    Serial.printf("State: %d\n", fmsState);
-    Serial.printf("Stationary: %s\n", isStationary ? "True" : "False");
-    Serial.printf("Shot Ready: %s\n", shotReady ? "True" : "False");
-    Serial.printf("Shot Attempt: %s\n", shotAttempt ? "True" : "False");
-    Serial.printf("Vector Size: %d\n", accelerationValues.size());
-    */
-
+    // Print data
     if (printGraphForm)
         graphPrint(euler);
     else basicPrint(euler);
     
-    // Print stick data
     if (shotAttempt) {
         minima = findGlobalMinima(accelerationValues);
         accelerationValues.clear();
@@ -172,22 +163,6 @@ void loop() {
         if (printMappedValue) Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
         shotAttempt = false;
     }
-
-   
-    /* Display the floating point data 
-    Serial.print("\tAcceleration: ");
-    Serial.print(avgAcceleration, 3);
-    Serial.print(" Minima: ");
-    Serial.print(globalMinima, 3);
-    /*Serial.print(" Roll: ");
-    Serial.print(-180/M_PI * (double) euler.z() - calData[1], 3);
-    Serial.print(" Pitch: ");
-    Serial.print(180/M_PI * (double) euler.y() - calData[2], 3);
-    Serial.print(" Yaw: ");
-    Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 3);
-    Serial.println("\t\t");
-    Serial.println();*/
-  
 
     oldAcceleration = avgAcceleration;
 
@@ -198,11 +173,9 @@ void loop() {
 double findGlobalMinima(Vector<double> accelerationValues) {
     double minimum = MAX_ACC;
     for (double s : accelerationValues) {
-        //Serial.printf("%f, ", s);
         minimum = (s < minimum) ? s : minimum;
     }
-    //Serial.println();
-    
+
     return minimum;
 }
 
@@ -478,6 +451,7 @@ void configurePrint() {
     Serial.println();
 }
 
+// Print for monitor
 void basicPrint(imu::Vector<3> euler) {
     if (printFmsState) Serial.printf("State: %s\n", stateMap[fmsState]);
     if (printStationary) Serial.printf("Stationary: %s\n", isStationary ? "True" : "False");
@@ -491,6 +465,7 @@ void basicPrint(imu::Vector<3> euler) {
     Serial.println();
 }
 
+// Print for plotter
 void graphPrint(imu::Vector<3> euler) {
     if (printFmsState) {
         Serial.print("State: ");
