@@ -35,6 +35,9 @@ double globalMinima = 0;
 bool shotAttempt;
 int fmsState = 0;
 
+// Operation mode variables
+bool speedCheckMode;
+
 // Print variables
 bool printGraphForm;
 bool printFmsState;
@@ -84,6 +87,7 @@ void setup() {
 
     delay(5);
     zeroOut(); // Get baseline orientation of stick
+    configureOperation();
     configurePrint();
     floodStationary(-100);
 }
@@ -157,7 +161,10 @@ void loop() {
         minima = findGlobalMinima(accelerationValues);
         accelerationValues.clear();
         mapped = mapAcceleration(minima);
-        if (printMappedValue) Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
+        if (printMappedValue) {
+            Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
+            if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
+        }
         shotAttempt = false;
     }
 
@@ -202,7 +209,7 @@ void checkStationary(double avgAcceleration) {
 
 // Resets stationary value array with non-stationary values
 void floodStationary() {
-    for (int i = 0; i < 10; i++) stationaryValues[i] = (i % 2 ==0) ? MIN_ACCELERATION : MAX_ACCELERATION;    
+    for (int i = 0; i < 10; i++) stationaryValues[i] = (i % 2 == 0) ? MIN_ACCELERATION : MAX_ACCELERATION;    
 }
 
 // Resets stationary value array
@@ -242,6 +249,25 @@ void zeroOut() {
     shotReady = false;
     shotAttempt = false;
     oldAcceleration = calibrationData[0];
+}
+
+// Configure cue stick operation
+void configureOperation() {
+    uint8_t valuesConfigured = 0;
+
+    if (valuesConfigured == 0) Serial.print("Speed check mode?: ");
+    while (valuesConfigured == 0) {
+        if (checkButton(buttonA)) {
+            Serial.println("Y");
+            speedCheckMode = true;
+            valuesConfigured = 8;
+        }
+        if (checkButton(buttonB)) {
+            Serial.println("N");
+            speedCheckMode = false;
+            valuesConfigured++;
+        }
+    }
 }
 
 // Configure which values are printed
