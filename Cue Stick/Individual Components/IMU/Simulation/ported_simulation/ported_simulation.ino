@@ -8,8 +8,8 @@
 #include "buttons.h"
 
 #define BNO055_SAMPLERATE_DELAY_MS 100
-#define MIN_ACC -1000
-#define MAX_ACC 1000
+#define MIN_ACCELERATION -1000
+#define MAX_ACCELERATION 1000
 #define ACC_MARGIN 1
 const int ELEMENT_COUNT_MAX = 30;
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
@@ -18,7 +18,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
 double storage_array[ELEMENT_COUNT_MAX];
 Vector<double> accelerationValues(storage_array);
 double stationaryValues[10];
-double calData[4];
+double calibrationData[4];
 int stationaryIndex = 0;
 double oldAcceleration;
 double avgAcceleration;
@@ -58,11 +58,12 @@ String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING_SHOT", "SHOT_TAKEN
 void checkStationary(double avgAcceleration);
 double findGlobalMinima(Vector<double> accelerationValues);
 int mapAcceleration(double acceleration);
-void floodStationary(int val);
+void floodStationary();
+void floodStationary(int floodValue);
 void zeroOut();
 void configurePrint();
-void basicPrint(imu::Vector<3> euler);
-void graphPrint(imu::Vector<3> euler);
+void basicPrint(imu::Vector<3> eulerVector);
+void graphPrint(imu::Vector<3> eulerVector);
 
 // Configures the simulation
 void setup() {
@@ -90,38 +91,36 @@ void setup() {
 // Main functionality of simulation
 void loop() {
     // Get accleration and orientation vectors
-    imu::Vector<3> acc = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-    imu::Vector<3> grav = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
-  
-    imu::Quaternion quat = bno.getQuat();
-    quat.normalize();
-    imu::Vector<3> euler = quat.toEuler();
+    imu::Vector<3> accelerationVector = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    imu::Quaternion quaternionVector = bno.getQuat();
+    quaternionVector.normalize();
+    imu::Vector<3> eulerVector = quaternionVector.toEuler();
 
     if (!zeroedOut) { // If not zeroedOut
         if (zeroCount < 20) { // If zeroCount < 20
-            double roll = -180/M_PI * euler.z();
-            double pitch = 180/M_PI * euler.y();
-            double yaw = 180/M_PI * euler.x();
+            double roll = -180/M_PI * eulerVector.z();
+            double pitch = 180/M_PI * eulerVector.y();
+            double yaw = 180/M_PI * eulerVector.x();
             Serial.printf("Roll = %lf\n", roll);
             if (!isnan(roll)) {
-                calData[0] += acc.x();
-                calData[1] += roll;
-                calData[2] += pitch;
-                calData[3] += yaw;
+                calibrationData[0] += accelerationVector.x();
+                calibrationData[1] += roll;
+                calibrationData[2] += pitch;
+                calibrationData[3] += yaw;
                 Serial.printf("zeroCount = %d\n", zeroCount);
                 zeroCount++;
             }
         }
 
         if (zeroCount == 20) { // If zeroCount == 20
-            for (int i = 0; i < 4; i++) calData[i] /= 20; // Divide calData values by 20
-            Serial.printf("Roll: %lf, Pitch: %lf, Yaw: %lf\n", calData[1], calData[2], calData[3]);
+            for (int i = 0; i < 4; i++) calibrationData[i] /= 20; // Divide calibrationData values by 20
+            Serial.printf("Roll: %lf, Pitch: %lf, Yaw: %lf\n", calibrationData[1], calibrationData[2], calibrationData[3]);
             zeroedOut = true; // Set zeroedOut to true
         }
     }
    
     if (zeroedOut) { // If zeroedOut
-        avgAcceleration = ((acc[0] - calData[0]) + oldAcceleration) / 2; //  Smooth accleration value
+        avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
 
         checkStationary(avgAcceleration); // Check if stick is stationary
 
@@ -137,14 +136,12 @@ void loop() {
         } else if (isStationary && shotReady && accelerationValues.empty()) { // State 2: Stationary, ready to take shot, hasn't moved -> wait for shot
             fmsState = 2;
         } else if (!isStationary && shotReady) { // State 3: Not stationary, ready to take shot (taking shot) -> self
-            //Serial.println("Taking a shot");
             double pushedValue = avgAcceleration - accelerationBase;
             accelerationValues.push_back(pushedValue);
-            //Serial.printf("\tPushed %f\n", pushedValue);
             fmsState = 3;
         } else if (isStationary && shotReady && !accelerationValues.empty()) {  // State 4: Stationary, ready to take shot (done taking shot) -> reset
             for (int i = 0; i < 9; i++) accelerationValues.pop_back();
-            floodStationary(avgAcceleration);
+            floodStationary();
             shotAttempt = true;
             shotReady = false;
             fmsState = 4;
@@ -153,8 +150,8 @@ void loop() {
 
     // Print data
     if (printGraphForm)
-        graphPrint(euler);
-    else basicPrint(euler);
+        graphPrint(eulerVector);
+    else basicPrint(eulerVector);
     
     if (shotAttempt) {
         minima = findGlobalMinima(accelerationValues);
@@ -171,7 +168,7 @@ void loop() {
 
 // Finds the strongest deceleration
 double findGlobalMinima(Vector<double> accelerationValues) {
-    double minimum = MAX_ACC;
+    double minimum = MAX_ACCELERATION;
     for (double s : accelerationValues) {
         minimum = (s < minimum) ? s : minimum;
     }
@@ -191,8 +188,8 @@ int mapAcceleration(double acceleration) {
 // Checks if cue stick is stationary
 void checkStationary(double avgAcceleration) {
     stationaryValues[stationaryIndex] = avgAcceleration; // Store queue of 10 acceleration values
-    double minAcc = MAX_ACC;
-    double maxAcc = MIN_ACC;
+    double minAcc = MAX_ACCELERATION;
+    double maxAcc = MIN_ACCELERATION;
     
     for (int i = 0; i < 10; i++){
         if (stationaryValues[i] < minAcc) minAcc = stationaryValues[i];
@@ -203,51 +200,48 @@ void checkStationary(double avgAcceleration) {
     stationaryIndex = (stationaryIndex + 1) % 10; // wrap around
 }
 
+// Resets stationary value array with non-stationary values
+void floodStationary() {
+    for (int i = 0; i < 10; i++) stationaryValues[i] = (i % 2 ==0) ? MIN_ACCELERATION : MAX_ACCELERATION;    
+}
+
 // Resets stationary value array
-void floodStationary(int val) {
-    for (int i = 0; i < 10; i++) stationaryValues[i] = val;    
+void floodStationary(int floodValue) {
+    for (int i = 0; i < 10; i++) stationaryValues[i] = floodValue;    
 }
 
 void zeroOut() {
     for (int i = 0; i < 4; i++) 
-        calData[i] = 0;
-
-    
+        calibrationData[i] = 0;
     
     for (int i = 0; i < 20; i++) {
-        imu::Vector<3> acc = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-        imu::Vector<3> grav = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
-    
-        imu::Quaternion quat = bno.getQuat();
-        quat.normalize();
-        imu::Vector<3> euler = quat.toEuler();
+        imu::Vector<3> accelerationVector = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+        imu::Quaternion quaternionVector = bno.getQuat();
+        quaternionVector.normalize();
+        imu::Vector<3> eulerVector = quaternionVector.toEuler();
 
-        double roll = -180/M_PI * euler.z();
+        double roll = -180/M_PI * eulerVector.z();
         if(isnan(roll)) 
             i--;
         else {
-            calData[0] += acc.x();
-            //Serial.printf("Acc add: %lf\n", calData[1]);
-            calData[1] += 180/M_PI * euler.z();
-            //Serial.printf("Roll add: %lf\n", calData[1]);
-            calData[2] += 180/M_PI * euler.y();
-            //Serial.printf("Pitch add: %lf\n", calData[2]);
-            calData[3] += 180/M_PI * euler.x();
-            //Serial.printf("Yaw add: %lf\n", calData[3]);
+            calibrationData[0] += accelerationVector.x();
+            calibrationData[1] += 180/M_PI * eulerVector.z();
+            calibrationData[2] += 180/M_PI * eulerVector.y();
+            calibrationData[3] += 180/M_PI * eulerVector.x();
         }
         delay(BNO055_SAMPLERATE_DELAY_MS);
     }
 
     for (int i = 0; i < 4; i++) {
-        calData[i] /= 20;
-        Serial.printf("Offset #%d: %lf\n", i, calData[i]);
+        calibrationData[i] /= 20;
+        Serial.printf("Offset #%d: %lf\n", i, calibrationData[i]);
     }
 
     zeroedOut = true;
     isStationary = false;
     shotReady = false;
     shotAttempt = false;
-    oldAcceleration = calData[0];
+    oldAcceleration = calibrationData[0];
 }
 
 // Configure which values are printed
@@ -273,7 +267,6 @@ void configurePrint() {
             valuesConfigured++;
         }
     }
-
 
     // Use default configuration
     if (valuesConfigured == 1) Serial.print("Use default (all printed): ");
@@ -452,21 +445,21 @@ void configurePrint() {
 }
 
 // Print for monitor
-void basicPrint(imu::Vector<3> euler) {
+void basicPrint(imu::Vector<3> eulerVector) {
     if (printFmsState) Serial.printf("State: %s\n", stateMap[fmsState]);
     if (printStationary) Serial.printf("Stationary: %s\n", isStationary ? "True" : "False");
     if (printShotReady) Serial.printf("Shot Ready: %s\n", shotReady ? "True" : "False");
     if (printShotAttempt) Serial.printf("Shot Attempt: %s\n", shotAttempt ? "True" : "False");
     if (printVectorSize) Serial.printf("Vector Size: %d\n", accelerationValues.size());
     if (printAcceleration) Serial.printf("Acceleration: %.3f\n", avgAcceleration);
-    if (printRoll) Serial.printf("Roll: %.3f\n", -180/M_PI * (double) euler.z() - calData[1]);
-    if (printPitch) Serial.printf("Pitch: %.3f\n", 180/M_PI * (double) euler.y() - calData[2]);
-    if (printYaw) Serial.printf("Yaw: %.3f\n", -(180/M_PI * (double) euler.x() - calData[3]));
+    if (printRoll) Serial.printf("Roll: %.3f\n", -180/M_PI * (double) eulerVector.z() - calibrationData[1]);
+    if (printPitch) Serial.printf("Pitch: %.3f\n", 180/M_PI * (double) eulerVector.y() - calibrationData[2]);
+    if (printYaw) Serial.printf("Yaw: %.3f\n", -(180/M_PI * (double) eulerVector.x() - calibrationData[3]));
     Serial.println();
 }
 
 // Print for plotter
-void graphPrint(imu::Vector<3> euler) {
+void graphPrint(imu::Vector<3> eulerVector) {
     if (printFmsState) {
         Serial.print("State: ");
         Serial.print(fmsState);
@@ -477,15 +470,15 @@ void graphPrint(imu::Vector<3> euler) {
     }
     if (printRoll) {
         Serial.print(" Roll: ");
-        Serial.print(-180/M_PI * (double) euler.z() - calData[1], 3);
+        Serial.print(-180/M_PI * (double) eulerVector.z() - calibrationData[1], 3);
     }
     if (printPitch) {
         Serial.print(" Pitch: ");
-        Serial.print(180/M_PI * (double) euler.y() - calData[2], 3);
+        Serial.print(180/M_PI * (double) eulerVector.y() - calibrationData[2], 3);
     }
     if (printYaw) {
         Serial.print(" Yaw: ");
-        Serial.print(-(180/M_PI * (double) euler.x() - calData[3]), 3);
+        Serial.print(-(180/M_PI * (double) eulerVector.x() - calibrationData[3]), 3);
     }
 
     Serial.println("\t\t");
