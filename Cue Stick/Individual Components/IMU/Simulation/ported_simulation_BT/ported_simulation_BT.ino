@@ -94,7 +94,6 @@ class MyServerCallbacks: public BLEServerCallbacks {
 };
 
 void initBNO() {
-    
     if(!bno.begin()) {
         /* There was a problem detecting the BNO055 ... check your connections */
         Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
@@ -107,19 +106,39 @@ void initBNO() {
 void setup() {
     Serial.begin(115200);
     Serial.println("Cue Stick IMU Test\n");
-
-    initBNO(); // Initialise the sensor
-
+    
+    // Initialise the sensor
+    initBNO(); 
     delay(1000);
     bno.setExtCrystalUse(true);
     Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
+    
+    // Setup Button Inputs
     setupButtons();
-
     delay(5);
+    
+    // Setup Orientation Measurements
     zeroOut(); // Get baseline orientation of stick
     configureOperation();
     configurePrint();
     floodStationary(-100);
+  
+    // * Setup Bluetooth
+    // Create the BLE Device
+    BLEDevice::init(bleServerName);
+
+    // Create the BLE Server
+    BLEServer *pServer = BLEDevice::createServer();
+    pServer->setCallbacks(new MyServerCallbacks());
+
+    // Create the BLE Service
+    BLEService *cueService = pServer->createService(SERVICE_UUID);
+    
+    // Create BLE Characteristics and Create a BLE Descriptor
+    // Acceleration
+    bmeService->addCharacteristic(&bmeHumidityCharacteristics);
+    bmeHumidityDescriptor.setValue("BME humidity");
+    bmeHumidityCharacteristics.addDescriptor(new BLE2902());
 
     delay(1000);
 }
