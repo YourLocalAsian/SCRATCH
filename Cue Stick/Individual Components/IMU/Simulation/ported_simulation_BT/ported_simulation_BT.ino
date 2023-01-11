@@ -6,15 +6,19 @@
 #include <Vector.h>
 
 #include "buttons.h"
-#include "BluetoothSerial.h"
+
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
 
 #define BNO055_SAMPLERATE_DELAY_MS 100
 #define MIN_ACCELERATION -1000
 #define MAX_ACCELERATION 1000
 #define ACC_MARGIN 1
+
 const int ELEMENT_COUNT_MAX = 30;
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
-BluetoothSerial SerialBT;
 
 // Global storage variables
 double storage_array[ELEMENT_COUNT_MAX];
@@ -70,38 +74,45 @@ void configurePrint();
 void basicPrint(imu::Vector<3> eulerVector);
 void graphPrint(imu::Vector<3> eulerVector);
 
-void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
-    if(event == ESP_SPP_SRV_OPEN_EVT){
-      Serial.println("Client Connected");
-  }
+// * BLE
+#define bleServerName "CUE_ESP32" // BLE server name
+bool deviceConnected = false;
+#define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59" // https://www.uuidgenerator.net/
+
+// Cue Acceleration Characteristic and Descriptor
+BLECharacteristic cueAccelerationCharacteristics("ca73b3ba-39f6-4ab3-91ae-186dc9577d99", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor cueAccelerationDescriptor(BLEUUID((uint16_t)0x2903));
+
+// Setup callbacks onConnect and onDisconnect
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+        deviceConnected = true;
+    };
+    void onDisconnect(BLEServer* pServer) {
+        deviceConnected = false;
+    }
+};
+
+void initBNO() {
+    
+    if(!bno.begin()) {
+        /* There was a problem detecting the BNO055 ... check your connections */
+        Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+        while(1);
+    }
 }
+
 
 // Configures the simulation
 void setup() {
     Serial.begin(115200);
-    SerialBT.register_callback(callback);
-    
-    if (!SerialBT.begin("ESP32")){
-      Serial.println("An error occurred initializing Bluetooth");
-    } else {
-      Serial.println("Bluetooth initialized");
-    }
-    
     Serial.println("Cue Stick IMU Test\n");
-    if (SerialBT.available()) SerialBT.println("Cue Stick IMU Test\n");
 
-    // Initialise the sensor
-    if(!bno.begin()) {
-        /* There was a problem detecting the BNO055 ... check your connections */
-        Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-        if (SerialBT.available()) SerialBT.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-        while(1);
-    }
+    initBNO(); // Initialise the sensor
 
     delay(1000);
     bno.setExtCrystalUse(true);
     Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
-    if (SerialBT.available()) SerialBT.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
     setupButtons();
 
     delay(5);
@@ -134,7 +145,6 @@ void loop() {
                 calibrationData[2] += pitch;
                 calibrationData[3] += yaw;
                 Serial.printf("zeroCount = %d\n", zeroCount);
-                SerialBT.printf("zeroCount = %d\n", zeroCount);
                 zeroCount++;
             }
         }
@@ -142,14 +152,12 @@ void loop() {
         if (zeroCount == 20) { // If zeroCount == 20
             for (int i = 0; i < 4; i++) calibrationData[i] /= 20; // Divide calibrationData values by 20
             Serial.printf("Roll: %lf, Pitch: %lf, Yaw: %lf\n", calibrationData[1], calibrationData[2], calibrationData[3]);
-            SerialBT.printf("Roll: %lf, Pitch: %lf, Yaw: %lf\n", calibrationData[1], calibrationData[2], calibrationData[3]);
             zeroedOut = true; // Set zeroedOut to true
         }
     }
    
     if (zeroedOut) { // If zeroedOut
         avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
-
         checkStationary(avgAcceleration); // Check if stick is stationary
 
         // FSM 
@@ -284,13 +292,11 @@ void configureOperation() {
     while (valuesConfigured == 0) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
-            SerialBT.println("Y");
             speedCheckMode = true;
             valuesConfigured = 8;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
-            SerialBT.println("N");
             speedCheckMode = false;
             valuesConfigured++;
         }
