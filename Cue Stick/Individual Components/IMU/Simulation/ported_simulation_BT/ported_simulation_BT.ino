@@ -101,7 +101,6 @@ void initBNO() {
     }
 }
 
-
 // Configures the simulation
 void setup() {
     Serial.begin(115200);
@@ -136,11 +135,18 @@ void setup() {
     
     // Create BLE Characteristics and Create a BLE Descriptor
     // Acceleration
-    bmeService->addCharacteristic(&bmeHumidityCharacteristics);
-    bmeHumidityDescriptor.setValue("BME humidity");
-    bmeHumidityCharacteristics.addDescriptor(new BLE2902());
+    cueService->addCharacteristic(&cueAccelerationCharacteristics);
+    cueAccelerationDescriptor.setValue("IMU acceleration");
+    cueAccelerationCharacteristics.addDescriptor(new BLE2902());
+    
+    // Start the service
+    cueService->start();
 
-    delay(1000);
+    // Start advertising
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_UUID);
+    pServer->getAdvertising()->start();
+    Serial.println("Waiting a client connection to notify...");
 }
 
 // Main functionality of simulation
