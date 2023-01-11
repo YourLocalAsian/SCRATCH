@@ -1,11 +1,11 @@
 #include <string>
 
-#define UP_PIN 14
-#define DOWN_PIN 12
-#define LEFT_PIN 13
-#define RIGHT_PIN 25
-#define A_PIN 27
-#define B_PIN 26
+#define UP_PIN 19
+#define DOWN_PIN 32
+#define LEFT_PIN 33
+#define RIGHT_PIN 16
+#define A_PIN 17
+#define B_PIN 18
 
 struct Button{
     const uint8_t pin_;
