@@ -7,6 +7,13 @@
 #define A_PIN 17
 #define B_PIN 18
 
+#define UP 0
+#define DOWN 1
+#define LEFT 2
+#define RIGHT 3
+#define A 4
+#define B 5
+
 struct Button{
     const uint8_t pin_;
     const String name_;

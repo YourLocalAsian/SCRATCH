@@ -19,18 +19,19 @@
 struct Button{
     const uint8_t pin_;
     const String name_;
+    const uint8_t number;
     bool pressed_;
     uint64_t button_time_;
     uint64_t last_button_time_;
 };
 
 // Instantiate buttons
-Button buttonUp = {UP_PIN, "Up", false, 0, 0};
-Button buttonDown = {DOWN_PIN, "Down", false, 0, 0};
-Button buttonLeft = {LEFT_PIN, "Left", false, 0, 0};
-Button buttonRight = {RIGHT_PIN, "Right", false, 0, 0};
-Button buttonA = {A_PIN, "A", false, 0, 0};
-Button buttonB = {B_PIN, "B", false, 0, 0};
+Button buttonUp = {UP_PIN, "Up", UP, false, 0, 0};
+Button buttonDown = {DOWN_PIN, "Down", DOWN, false, 0, 0};
+Button buttonLeft = {LEFT_PIN, "Left", LEFT, false, 0, 0};
+Button buttonRight = {RIGHT_PIN, "Right", RIGHT, false, 0, 0};
+Button buttonA = {A_PIN, "A", A, false, 0, 0};
+Button buttonB = {B_PIN, "B", B, false, 0, 0};
 Button buttonArray[] = {buttonUp, buttonDown, buttonLeft, buttonRight, buttonA, buttonB};
 bool pressedArray[6];
 uint8_t buttonsPressed = 0;

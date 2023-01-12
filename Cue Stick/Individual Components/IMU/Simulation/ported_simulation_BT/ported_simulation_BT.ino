@@ -39,6 +39,7 @@ int fmsState = 0;
 
 // Operation mode variables
 bool speedCheckMode;
+bool isRunning = true;
 
 // Print variables
 bool printGraphForm;
@@ -57,7 +58,7 @@ bool printYaw;
 const int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 String ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
                             "FAST", "POWER", "BREAK", "POWER_BREAK"};
-String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING_SHOT", "SHOT_TAKEN"};
+String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING_SHOT", "SHOT_TAKEN", "PAUSED"};
 
 // Supplementary functions
 void checkStationary(double avgAcceleration);
@@ -88,6 +89,13 @@ void setup() {
     delay(1000);
     bno.setExtCrystalUse(true);
     Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
+
+    setupBLE(); // Initialize BLE connection
+    //* Block operation until connection is detected
+    while (!deviceConnected) {
+        Serial.println("No connection detected");
+        delay(1000);
+    }
     
     // Setup Button Inputs
     setupButtons();
@@ -97,17 +105,17 @@ void setup() {
     zeroOut(); // Get baseline orientation of stick
     configureOperation();
     configurePrint();
-    floodStationary(-100);
-    
-    setupBLE(); // Initialize BLE connection
+    floodStationary(-100);   
 }
 
 // Main functionality of simulation
 void loop() {
-    //* Block operation until connection is detected
-    while (!deviceConnected) {
-        Serial.println("No connection detected");
-        delay(1000);
+    // * Check if loop is paused
+    while (!isRunning) {
+        if (checkButton(buttonA)) {
+            isRunning = true;
+            fmsState = 0;
+        }
     }
     
     //* Get accleration and orientation vectors
@@ -165,6 +173,13 @@ void loop() {
             shotReady = false;
             fmsState = 4;
         }
+
+        // Button press overrides FMS
+        if (checkButton(buttonA)) {
+            isRunning = false;
+            fmsState = 5;
+        }
+        
     }
 
     // Print data
@@ -257,7 +272,6 @@ void zeroOut() {
     for (int i = 0; i < 4; i++) {
         calibrationData[i] /= 20;
         Serial.printf("Offset #%d: %lf\n", i, calibrationData[i]);
-        Serial.printf("Offset #%d: %lf\n", i, calibrationData[i]);
     }
 
     zeroedOut = true;
@@ -275,11 +289,13 @@ void configureOperation() {
     while (valuesConfigured == 0) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             speedCheckMode = true;
             valuesConfigured = 8;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             speedCheckMode = false;
             valuesConfigured++;
         }
@@ -295,6 +311,7 @@ void configurePrint() {
     while (valuesConfigured == 0) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printGraphForm = true;
             printFmsState = true;
             printAcceleration = true;
@@ -305,6 +322,7 @@ void configurePrint() {
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printGraphForm = false;
             valuesConfigured++;
         }
@@ -315,6 +333,7 @@ void configurePrint() {
     while (valuesConfigured == 1) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printFmsState = true;
             printStationary = true;
             printShotReady = true;
@@ -329,6 +348,7 @@ void configurePrint() {
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             valuesConfigured++;
         }
     }
@@ -338,11 +358,13 @@ void configurePrint() {
     while (valuesConfigured == 2) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printFmsState = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printFmsState = false;
             valuesConfigured++;
         }
@@ -353,11 +375,13 @@ void configurePrint() {
     while (valuesConfigured == 3) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printStationary = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printStationary = false;
             valuesConfigured++;
         }
@@ -368,11 +392,13 @@ void configurePrint() {
     while (valuesConfigured == 4) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printShotReady = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printShotReady = false;
             valuesConfigured++;
         }
@@ -383,11 +409,13 @@ void configurePrint() {
     while (valuesConfigured == 5) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printShotAttempt = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printShotAttempt = false;
             valuesConfigured++;
         }
@@ -398,11 +426,13 @@ void configurePrint() {
     while (valuesConfigured == 6) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printVectorSize = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printVectorSize = false;
             valuesConfigured++;
         }    
@@ -413,11 +443,13 @@ void configurePrint() {
     while (valuesConfigured == 7) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printMappedValue = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printMappedValue = false;
             valuesConfigured++;
         }    
@@ -428,11 +460,13 @@ void configurePrint() {
     while (valuesConfigured == 8) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printAcceleration = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printAcceleration = false;
             valuesConfigured++;
         }
@@ -443,11 +477,13 @@ void configurePrint() {
     while (valuesConfigured == 9) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printRoll = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printRoll = false;
             valuesConfigured++;
         }    
@@ -458,11 +494,13 @@ void configurePrint() {
     while (valuesConfigured == 10) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printPitch = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printPitch = false;
             valuesConfigured++;
         }   
@@ -473,11 +511,13 @@ void configurePrint() {
     while (valuesConfigured == 11) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
+            updateCharacteristic(buttonCharacteristic, A);
             printYaw = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
+            updateCharacteristic(buttonCharacteristic, B);
             printYaw = false;
             valuesConfigured++;
         }    
@@ -488,18 +528,30 @@ void configurePrint() {
 
 // Print for monitor
 void basicPrint(imu::Vector<3> eulerVector) {
-    if (printFmsState) Serial.printf("State: %s\n", stateMap[fmsState]);
+    if (printFmsState) {
+        Serial.printf("State: %s\n", stateMap[fmsState]);
+        updateCharacteristic(fmsCharacteristic, fmsState);
+    }
     if (printStationary) Serial.printf("Stationary: %s\n", isStationary ? "True" : "False");
     if (printShotReady) Serial.printf("Shot Ready: %s\n", shotReady ? "True" : "False");
     if (printShotAttempt) Serial.printf("Shot Attempt: %s\n", shotAttempt ? "True" : "False");
     if (printVectorSize) Serial.printf("Vector Size: %d\n", accelerationValues.size());
     if (printAcceleration) {
         Serial.printf("Acceleration: %.3f\n", avgAcceleration);
-        updateAccelerationCharacteristics(avgAcceleration);
+        updateCharacteristic(accCharacteristic, avgAcceleration * 100);
     }
-    if (printRoll) Serial.printf("Roll: %.3f\n", -180/M_PI * (double) eulerVector.z() - calibrationData[1]);
-    if (printPitch) Serial.printf("Pitch: %.3f\n", 180/M_PI * (double) eulerVector.y() - calibrationData[2]);
-    if (printYaw) Serial.printf("Yaw: %.3f\n", -(180/M_PI * (double) eulerVector.x() - calibrationData[3]));
+    if (printRoll) {
+        Serial.printf("Roll: %.3f\n", -180/M_PI * (double) eulerVector.z() - calibrationData[1]);
+        updateCharacteristic(rollCharacteristic, -180/M_PI * (double) eulerVector.z() - calibrationData[1]);
+    }
+    if (printPitch) {
+        Serial.printf("Pitch: %.3f\n", 180/M_PI * (double) eulerVector.y() - calibrationData[2]);
+        updateCharacteristic(pitchCharacteristic, 180/M_PI * (double) eulerVector.y() - calibrationData[2]);
+    }
+    if (printYaw) {
+        Serial.printf("Yaw: %.3f\n", -(180/M_PI * (double) eulerVector.x() - calibrationData[3]));
+        updateCharacteristic(yawCharacteristic, -(180/M_PI * (double) eulerVector.x() - calibrationData[3]));
+    }
     Serial.println();
 }
 
