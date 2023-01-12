@@ -53,12 +53,8 @@ void setupBLE() {
 
 // * Set characteristic value and notify client
 void updateAccelerationCharacteristics(double accelerationValue) {
-    // Convert float to string
-    static char accelerationString[6];
-    dtostrf(accelerationValue, 6, 2, accelerationString);
-  
     // Update and notify
-    cueAccelerationCharacteristics.setValue(accelerationString);
+    cueAccelerationCharacteristics.setValue(accelerationValue);
     cueAccelerationCharacteristics.notify();
   
     // Print value

@@ -104,7 +104,13 @@ void setup() {
 
 // Main functionality of simulation
 void loop() {
-    // Get accleration and orientation vectors
+    //* Block operation until connection is detected
+    while (!deviceConnected) {
+        Serial.println("No connection detected");
+        delay(1000);
+    }
+    
+    //* Get accleration and orientation vectors
     imu::Vector<3> accelerationVector = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
     imu::Quaternion quaternionVector = bno.getQuat();
     quaternionVector.normalize();
@@ -116,7 +122,6 @@ void loop() {
             double pitch = 180/M_PI * eulerVector.y();
             double yaw = 180/M_PI * eulerVector.x();
             Serial.printf("Roll = %lf\n", roll);
-            SerialBT.printf("Roll = %lf\n", roll);
             if (!isnan(roll)) {
                 calibrationData[0] += accelerationVector.x();
                 calibrationData[1] += roll;
