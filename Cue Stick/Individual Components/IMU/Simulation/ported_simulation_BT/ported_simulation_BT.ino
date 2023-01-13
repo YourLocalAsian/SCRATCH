@@ -116,6 +116,9 @@ void loop() {
             isRunning = true;
             fmsState = 0;
         }
+
+        Serial.println("Program is paused");
+        delay(2000);
     }
     
     //* Get accleration and orientation vectors

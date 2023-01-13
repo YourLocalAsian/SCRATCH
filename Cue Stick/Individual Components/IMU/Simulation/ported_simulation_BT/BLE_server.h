@@ -38,12 +38,12 @@ BLECharacteristic *yawCharacteristic;
 BLECharacteristic *buttonCharacteristic;
 BLECharacteristic *fmsCharacteristic;
 
-BLEDescriptor accelerationDescriptor(BLEUUID((uint16_t)0x2902));
+BLEDescriptor accelerationDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor rollDescriptor(BLEUUID((uint16_t)0x2903));
-BLEDescriptor pitchDescriptor(BLEUUID((uint16_t)0x2904));
-BLEDescriptor yawDescriptor(BLEUUID((uint16_t)0x2905));
-BLEDescriptor buttonDescriptor(BLEUUID((uint16_t)0x2906));
-BLEDescriptor fmsDescriptor(BLEUUID((uint16_t)0x2907));
+BLEDescriptor pitchDescriptor(BLEUUID((uint16_t)0x2903));
+BLEDescriptor yawDescriptor(BLEUUID((uint16_t)0x2903));
+BLEDescriptor buttonDescriptor(BLEUUID((uint16_t)0x2903));
+BLEDescriptor fmsDescriptor(BLEUUID((uint16_t)0x2903));
 
 // Function prototypes
 void createCharacteristics();
