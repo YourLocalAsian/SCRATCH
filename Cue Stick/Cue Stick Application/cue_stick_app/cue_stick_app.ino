@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include "shot_fms.h"
-#include "buttons.h"
 
 #define STANDBY_MODE 0
 #define SHOT_MODE 1

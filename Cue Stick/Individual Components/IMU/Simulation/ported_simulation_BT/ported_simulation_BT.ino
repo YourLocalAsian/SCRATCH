@@ -19,7 +19,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28);
 // Global storage variables
 double storage_array[ELEMENT_COUNT_MAX];
 Vector<double> accelerationValues(storage_array);
-double stationaryValues[10];
+double stationaryValues[20];
 double calibrationData[4];
 int stationaryIndex = 0;
 double oldAcceleration;
@@ -90,12 +90,19 @@ void setup() {
     bno.setExtCrystalUse(true);
     Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
 
-    setupBLE(); // Initialize BLE connection
+    // Setup Laser
+    pinMode(LASER, OUTPUT);
+    digitalWrite(LASER, HIGH);
+
+    // Initialize BLE connection
+    setupBLE(); 
     //* Block operation until connection is detected
     while (!deviceConnected) {
         Serial.println("No connection detected");
-        delay(1000);
+        digitalWrite(LASER, !digitalRead(LASER));
+        delay(250);
     }
+    digitalWrite(LASER, HIGH);
     
     // Setup Button Inputs
     setupButtons();
@@ -110,14 +117,26 @@ void setup() {
 
 // Main functionality of simulation
 void loop() {
+    // * Check if BLE connection is on
+    while (!deviceConnected) {
+        Serial.println("No connection detected");
+        digitalWrite(LASER, !digitalRead(LASER));
+        delay(250);
+    }
+
+    digitalWrite(LASER, HIGH);
+    
     // * Check if loop is paused
     while (!isRunning) {
+        Serial.println("Program is paused");
+        
         if (checkButton(buttonA)) {
             isRunning = true;
             fmsState = 0;
+            delay(3000); // Add additional 3s wait
+            break;
         }
-
-        Serial.println("Program is paused");
+        
         delay(2000);
     }
     
@@ -154,7 +173,7 @@ void loop() {
         avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
         checkStationary(avgAcceleration); // Check if stick is stationary
 
-        // FSM 
+        // FSM
         if (!isStationary && !shotReady) { // State 0: Not stationary, not ready to take shot
             fmsState = 0;
         } else if (isStationary && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
@@ -227,27 +246,27 @@ int mapAcceleration(double acceleration) {
 
 // Checks if cue stick is stationary
 void checkStationary(double avgAcceleration) {
-    stationaryValues[stationaryIndex] = avgAcceleration; // Store queue of 10 acceleration values
+    stationaryValues[stationaryIndex] = avgAcceleration; // Store queue of 100 acceleration values
     double minAcc = MAX_ACCELERATION;
     double maxAcc = MIN_ACCELERATION;
     
-    for (int i = 0; i < 10; i++){
+    for (int i = 0; i < 20; i++){
         if (stationaryValues[i] < minAcc) minAcc = stationaryValues[i];
         if (stationaryValues[i] > maxAcc) maxAcc = stationaryValues[i];
     }
 
     isStationary = (maxAcc - minAcc <= ACC_MARGIN) ? true : false; // if the min and max differenitate less than 0.5, set stationary to true
-    stationaryIndex = (stationaryIndex + 1) % 10; // wrap around
+    stationaryIndex = (stationaryIndex + 1) % 20; // wrap around
 }
 
 // Resets stationary value array with non-stationary values
 void floodStationary() {
-    for (int i = 0; i < 10; i++) stationaryValues[i] = (i % 2 == 0) ? MIN_ACCELERATION : MAX_ACCELERATION;    
+    for (int i = 0; i < 20; i++) stationaryValues[i] = (i % 2 == 0) ? MIN_ACCELERATION : MAX_ACCELERATION;    
 }
 
 // Resets stationary value array
 void floodStationary(int floodValue) {
-    for (int i = 0; i < 10; i++) stationaryValues[i] = floodValue;    
+    for (int i = 0; i < 20; i++) stationaryValues[i] = floodValue;    
 }
 
 void zeroOut() {

@@ -1,11 +1,13 @@
 #include <string>
 
-#define UP_PIN 19
-#define DOWN_PIN 32
+#define UP_PIN 32
+#define DOWN_PIN 16
 #define LEFT_PIN 33
-#define RIGHT_PIN 16
+#define RIGHT_PIN 19
 #define A_PIN 17
 #define B_PIN 18
+#define BOOT 0
+#define LASER 23
 
 #define UP 0
 #define DOWN 1

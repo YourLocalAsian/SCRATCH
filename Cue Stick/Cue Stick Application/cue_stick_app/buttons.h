@@ -1,13 +1,13 @@
-// Implementation of cue stick buttons
-
 #include <string>
 
-#define UP_PIN 14
-#define DOWN_PIN 12
-#define LEFT_PIN 13
-#define RIGHT_PIN 25
-#define A_PIN 27
-#define B_PIN 26
+#define UP_PIN 32
+#define DOWN_PIN 16
+#define LEFT_PIN 33
+#define RIGHT_PIN 19
+#define A_PIN 17
+#define B_PIN 18
+#define BOOT 0
+#define LASER 23
 
 #define UP 0
 #define DOWN 1
@@ -19,19 +19,18 @@
 struct Button{
     const uint8_t pin_;
     const String name_;
-    const uint8_t number;
     bool pressed_;
     uint64_t button_time_;
     uint64_t last_button_time_;
 };
 
 // Instantiate buttons
-Button buttonUp = {UP_PIN, "Up", UP, false, 0, 0};
-Button buttonDown = {DOWN_PIN, "Down", DOWN, false, 0, 0};
-Button buttonLeft = {LEFT_PIN, "Left", LEFT, false, 0, 0};
-Button buttonRight = {RIGHT_PIN, "Right", RIGHT, false, 0, 0};
-Button buttonA = {A_PIN, "A", A, false, 0, 0};
-Button buttonB = {B_PIN, "B", B, false, 0, 0};
+Button buttonUp = {UP_PIN, "Up", false, 0, 0};
+Button buttonDown = {DOWN_PIN, "Down", false, 0, 0};
+Button buttonLeft = {LEFT_PIN, "Left", false, 0, 0};
+Button buttonRight = {RIGHT_PIN, "Right", false, 0, 0};
+Button buttonA = {A_PIN, "A", false, 0, 0};
+Button buttonB = {B_PIN, "B", false, 0, 0};
 Button buttonArray[] = {buttonUp, buttonDown, buttonLeft, buttonRight, buttonA, buttonB};
 bool pressedArray[6];
 uint8_t buttonsPressed = 0;
