@@ -10,80 +10,99 @@
         GND: GND
  */
  
-int trigPinA = 7;    // Trigger
-int echoPinA = 12;    // Echo
-int trigPinB = 2;    // Trigger
-int echoPinB = 3;    // Echo
-long durationA, cmA, inchesA;
-long durationB, cmB, inchesB;
-long oldInchesA, oldInchesB;
+int trigPinA = 2;    // Trigger
+int echoPinA = 3;    // Echo
+int trigPinB = 4;    // Trigger
+int echoPinB = 5;    // Echo
+
+double durationA, cmA, inchesA;
+double durationB, cmB, inchesB;
+double oldInchesA, oldInchesB;
 unsigned long timeA, timeB;
-bool seenBallA = false, seenBallB = false;
+bool seenBallA = false;
+bool seenBallB = false;
  
 void setup() {
     //Serial Port begin
     Serial.begin(9600);
+    
     //Define inputs and outputs
     pinMode(trigPinA, OUTPUT);
     pinMode(echoPinA, INPUT);
     pinMode(trigPinB, OUTPUT);
     pinMode(echoPinB, INPUT);
+
+    oldInchesA = -100.00;
+    oldInchesB = -100.00;
 }
  
 void loop() {
     // Check if both sensors saw the ball
     if (seenBallA && seenBallB) {
-        unsigned long deltaTime = seenBallB - seenBallA;
-        double speed = deltaTime / 36.0;
-        Serial.printf("Speed: %f in/s\n", speed);
-        delay(5000);
-        oldInchesA = 1000;
-        oldInchesB = 1000;
+        double deltaTime = (timeB - timeA) / 1000.0;
+        double speed = 12.0 / deltaTime;
+        Serial.print("Speed: ");
+        Serial.print(speed);
+        Serial.print(" in/s ");
+        Serial.print(speed / 17.6);
+        Serial.println(" mph");
+        delay(10000);
+        oldInchesA = -100.00;
+        oldInchesB = -100.00;
         seenBallA = false;
         seenBallB = false;
     }
 
-    // The sensor is triggered by a HIGH pulse of 10 or more microseconds.
-    // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+    // Check sensor A
     digitalWrite(trigPinA, LOW);
-    digitalWrite(trigPinB, LOW);
     delayMicroseconds(5);
     digitalWrite(trigPinA, HIGH);
-    digitalWrite(trigPinB, HIGH);
     delayMicroseconds(10);
     digitalWrite(trigPinA, LOW);
-    digitalWrite(trigPinB, LOW);
-    
-    // Read the signal from the sensor: a HIGH pulse whose
-    // duration is the time (in microseconds) from the sending
-    // of the ping to the reception of its echo off of an object.
     pinMode(echoPinA, INPUT);
-    pinMode(echoPinB, INPUT);
     durationA = pulseIn(echoPinA, HIGH);
-    durationB = pulseIn(echoPinB, HIGH);
-    
-    // Convert the time into a distance
-    cmA = (durationA/2) / 29.1;     // Divide by 29.1 or multiply by 0.0343
+
     inchesA = (durationA/2) / 74;   // Divide by 74 or multiply by 0.0135
-    cmB = (durationB/2) / 29.1;     // Divide by 29.1 or multiply by 0.0343
-    inchesB = (durationB/2) / 74;   // Divide by 74 or multiply by 0.0135
+
+    Serial.print("Sensor A: ");
+    Serial.print(inchesA);
 
     // Check if distance changed
     if (!seenBallA) {
-        if (abs(oldInchesA - inchesA) > 10 && oldInchesA < 100) {
+        if (abs(oldInchesA - inchesA) > 60 && oldInchesA != -100.00) {
             seenBallA = true;
             timeA = millis();
         }
-        oldInchesA = inchesA;
     }
 
+    // Check sensor B
+    digitalWrite(trigPinB, LOW);
+    delayMicroseconds(5);
+    digitalWrite(trigPinB, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPinB, LOW);
+    pinMode(echoPinB, INPUT);
+    durationB = pulseIn(echoPinB, HIGH);
+
+    inchesB = (durationB/2) / 74;   // Divide by 74 or multiply by 0.0135
+
+    Serial.print(" Sensor B: ");
+    Serial.print(inchesB);
+    Serial.println("\t\t");
+        
     if (!seenBallB) {
-        if (abs(oldInchesB - inchesB) > 10 && oldInchesB < 100) {
+        if (abs(oldInchesB - inchesB) > 60 && oldInchesB != -100.00) {
             seenBallB = true;
             timeB = millis();
         }
-        oldInchesB = inchesB;
     }
+
+    oldInchesA = inchesA;
+    oldInchesB = inchesB;
+
+    // Timeout & reset
+    if (millis() - timeA > 10000) seenBallA = false;
+    if (millis() - timeB > 10000) seenBallB = false;
     
-    delay(250);
+    delay(25);
 }
