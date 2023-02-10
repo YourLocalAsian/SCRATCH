@@ -35,7 +35,7 @@ bool shotReady;
 double accelerationBase;
 double globalMinima = 0;
 bool shotAttempt;
-int fmsState = 0;
+int fsmState = 0;
 
 // Operation mode variables
 bool speedCheckMode;
@@ -43,7 +43,7 @@ bool isRunning = true;
 
 // Print variables
 bool printGraphForm;
-bool printFmsState;
+bool printFsmState;
 bool printStationary;
 bool printShotReady;
 bool printShotAttempt;
@@ -67,11 +67,14 @@ int mapAcceleration(double acceleration);
 void floodStationary();
 void floodStationary(int floodValue);
 void zeroOut();
+void configureOperation();
 void configurePrint();
 void basicPrint(imu::Vector<3> eulerVector);
 void graphPrint(imu::Vector<3> eulerVector);
 
 void initBNO() {
+    //bool begin(adafruit_bno055_opmode_t mode = OPERATION_MODE_NDOF);
+    
     if(!bno.begin()) {
         /* There was a problem detecting the BNO055 ... check your connections */
         Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
@@ -127,12 +130,12 @@ void loop() {
     digitalWrite(LASER, HIGH);
     
     // * Check if loop is paused
-    while (!isRunning) {
+    while (fsmState == 5) {
         Serial.println("Program is paused");
         
         if (checkButton(buttonA)) {
             isRunning = true;
-            fmsState = 0;
+            fsmState = 0;
             delay(3000); // Add additional 3s wait
             break;
         }
@@ -175,31 +178,31 @@ void loop() {
 
         // FSM
         if (!isStationary && !shotReady) { // State 0: Not stationary, not ready to take shot
-            fmsState = 0;
+            fsmState = 0;
         } else if (isStationary && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
             accelerationBase = avgAcceleration;
             floodStationary(avgAcceleration);
             globalMinima = avgAcceleration;
             shotReady = true;
-            fmsState = 1;
+            fsmState = 1;
         } else if (isStationary && shotReady && accelerationValues.empty()) { // State 2: Stationary, ready to take shot, hasn't moved -> wait for shot
-            fmsState = 2;
+            fsmState = 2;
         } else if (!isStationary && shotReady) { // State 3: Not stationary, ready to take shot (taking shot) -> self
             double pushedValue = avgAcceleration - accelerationBase;
             accelerationValues.push_back(pushedValue);
-            fmsState = 3;
+            fsmState = 3;
         } else if (isStationary && shotReady && !accelerationValues.empty()) {  // State 4: Stationary, ready to take shot (done taking shot) -> reset
             for (int i = 0; i < 9; i++) accelerationValues.pop_back();
             floodStationary();
             shotAttempt = true;
             shotReady = false;
-            fmsState = 4;
+            fsmState = 4;
         }
 
-        // Button press overrides FMS
+        // Button press overrides FSM
         if (checkButton(buttonA)) {
             isRunning = false;
-            fmsState = 5;
+            fsmState = 5;
         }
         
     }
@@ -335,7 +338,7 @@ void configurePrint() {
             Serial.println("Y");
             updateCharacteristic(buttonCharacteristic, A);
             printGraphForm = true;
-            printFmsState = true;
+            printFsmState = true;
             printAcceleration = true;
             printRoll = true;
             printPitch = true;
@@ -356,7 +359,7 @@ void configurePrint() {
         if (checkButton(buttonA)) {
             Serial.println("Y");
             updateCharacteristic(buttonCharacteristic, A);
-            printFmsState = true;
+            printFsmState = true;
             printStationary = true;
             printShotReady = true;
             printShotAttempt = true;
@@ -375,19 +378,19 @@ void configurePrint() {
         }
     }
 
-    // Set printFmsState
+    // Set printFsmState
     if (valuesConfigured == 2) Serial.print("Print State?: ");
     while (valuesConfigured == 2) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
             updateCharacteristic(buttonCharacteristic, A);
-            printFmsState = true;
+            printFsmState = true;
             valuesConfigured++;
         }
         if (checkButton(buttonB)) {
             Serial.println("N");
             updateCharacteristic(buttonCharacteristic, B);
-            printFmsState = false;
+            printFsmState = false;
             valuesConfigured++;
         }
     }
@@ -427,7 +430,7 @@ void configurePrint() {
     }
     
     // Set printShotAttempt
-    if (valuesConfigured == 5) Serial.print("Print FMS States?: ");
+    if (valuesConfigured == 5) Serial.print("Print Fsm States?: ");
     while (valuesConfigured == 5) {
         if (checkButton(buttonA)) {
             Serial.println("Y");
@@ -550,9 +553,9 @@ void configurePrint() {
 
 // Print for monitor
 void basicPrint(imu::Vector<3> eulerVector) {
-    if (printFmsState) {
-        Serial.printf("State: %s\n", stateMap[fmsState]);
-        updateCharacteristic(fmsCharacteristic, fmsState);
+    if (printFsmState) {
+        Serial.printf("State: %s\n", stateMap[fsmState]);
+        updateCharacteristic(fsmCharacteristic, fsmState);
     }
     if (printStationary) Serial.printf("Stationary: %s\n", isStationary ? "True" : "False");
     if (printShotReady) Serial.printf("Shot Ready: %s\n", shotReady ? "True" : "False");
@@ -579,9 +582,9 @@ void basicPrint(imu::Vector<3> eulerVector) {
 
 // Print for plotter
 void graphPrint(imu::Vector<3> eulerVector) {
-    if (printFmsState) {
+    if (printFsmState) {
         Serial.print("State: ");
-        Serial.print(fmsState);
+        Serial.print(fsmState);
     }
     if (printAcceleration) {
         Serial.print(" Acceleration: ");

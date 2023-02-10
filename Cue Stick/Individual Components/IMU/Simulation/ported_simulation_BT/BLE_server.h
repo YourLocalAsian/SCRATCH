@@ -11,7 +11,7 @@
 #define PITCH_UUID "1d710d8e-929a-11ed-a1eb-0242ac120002"
 #define YAW_UUID "1d710f6e-929a-11ed-a1eb-0242ac120002"
 #define BUTTON_UUID "1d7110c2-929a-11ed-a1eb-0242ac120002"
-#define FMS_UUID "1d7111da-929a-11ed-a1eb-0242ac120002"
+#define FSM_UUID "1d7111da-929a-11ed-a1eb-0242ac120002"
 
 bool deviceConnected = false;
 
@@ -36,18 +36,25 @@ BLECharacteristic *rollCharacteristic;
 BLECharacteristic *pitchCharacteristic;
 BLECharacteristic *yawCharacteristic;
 BLECharacteristic *buttonCharacteristic;
-BLECharacteristic *fmsCharacteristic;
+BLECharacteristic *fsmCharacteristic;
 
 BLEDescriptor accelerationDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor rollDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor pitchDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor yawDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor buttonDescriptor(BLEUUID((uint16_t)0x2903));
-BLEDescriptor fmsDescriptor(BLEUUID((uint16_t)0x2903));
+BLEDescriptor fsmDescriptor(BLEUUID((uint16_t)0x2902));
 
 // Function prototypes
 void createCharacteristics();
 void updateCharacteristic(BLECharacteristic cueCharacteristic, int value);
+
+class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic* pCharacteristic) {
+        uint8_t * Data = pCharacteristic->getData();
+        Serial.printf("State was set to: %d\n", Data[0]);
+     }
+ };
  
 // Function to set up BLE connection
 void setupBLE() {
@@ -59,7 +66,7 @@ void setupBLE() {
     cueServer->setCallbacks(new MyServerCallbacks());
 
     // Create the BLE Service
-    cueService = cueServer->createService(SERVICE_UUID);
+    cueService = cueServer->createService(BLEUUID(SERVICE_UUID), 30,0);
     
     // Create BLE Characteristics and Create a BLE Descriptor
     createCharacteristics();
@@ -106,11 +113,11 @@ void createCharacteristics() {
     buttonDescriptor.setValue("Buttons");
     buttonCharacteristic->addDescriptor(&buttonDescriptor);
 
-    // FMS State
-    fmsCharacteristic = cueService->createCharacteristic(FMS_UUID,
-                                                     BLECharacteristic::PROPERTY_NOTIFY);
-    fmsDescriptor.setValue("FMS State");
-    fmsCharacteristic->addDescriptor(&fmsDescriptor);
+    // FSM State
+    fsmCharacteristic = cueService->createCharacteristic(FSM_UUID,
+                                                     BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE_NR);
+    fsmDescriptor.setValue("FSM State");
+    fsmCharacteristic->addDescriptor(&fsmDescriptor);
 }
 
 // * Set characteristic value and notify client

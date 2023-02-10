@@ -69,7 +69,7 @@ void loop() {
 
     // Check if distance changed
     if (!seenBallA) {
-        if (abs(oldInchesA - inchesA) > 60 && oldInchesA != -100.00) {
+        if (inchesA < 15 && oldInchesA != -100.00) {
             seenBallA = true;
             timeA = millis();
         }
@@ -91,7 +91,7 @@ void loop() {
     Serial.println("\t\t");
         
     if (!seenBallB) {
-        if (abs(oldInchesB - inchesB) > 60 && oldInchesB != -100.00) {
+        if (inchesB < 15 && oldInchesB != -100.00) {
             seenBallB = true;
             timeB = millis();
         }
