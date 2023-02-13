@@ -118,6 +118,7 @@ void createCharacteristics() {
                                                      BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE_NR);
     fsmDescriptor.setValue("FSM State");
     fsmCharacteristic->addDescriptor(&fsmDescriptor);
+    fsmCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 }
 
 // * Set characteristic value and notify client

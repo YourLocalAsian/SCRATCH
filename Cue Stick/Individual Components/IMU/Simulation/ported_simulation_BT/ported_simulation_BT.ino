@@ -128,6 +128,10 @@ void loop() {
     }
 
     digitalWrite(LASER, HIGH);
+
+    // Parity between FSM and Characteristic
+    uint8_t * Data = fsmCharacteristic->getData();
+    fsmState = Data[0];
     
     // * Check if loop is paused
     while (fsmState == 5) {
