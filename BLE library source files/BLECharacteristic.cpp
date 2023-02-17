@@ -671,6 +671,12 @@ void BLECharacteristic::setValue(std::string value) {
 	setValue((uint8_t*)(value.data()), value.length());
 } // setValue
 
+void BLECharacteristic::setValue(uint8_t& data8) {
+	uint8_t temp[1];
+	temp[0] = data8;
+	setValue(temp, 1);
+} // setValue 
+
 void BLECharacteristic::setValue(uint16_t& data16) {
 	uint8_t temp[2];
 	temp[0] = data16;
@@ -727,6 +733,31 @@ void BLECharacteristic::setValue(uint64_t& data64, uint64_t& data64_2) {
 	temp[14] = data64_2 >> 48;
 	temp[15] = data64_2 >> 56;
 	setValue(temp, 16);
+}
+
+void BLECharacteristic::setValue(uint64_t& data64, uint64_t& data64_2, uint32_t data32) {
+	uint8_t temp[20];
+	temp[0] = data64;
+	temp[1] = data64 >> 8;
+	temp[2] = data64 >> 16;
+	temp[3] = data64 >> 24;
+	temp[4] = data64 >> 32;
+	temp[5] = data64 >> 40;
+	temp[6] = data64 >> 48;
+	temp[7] = data64 >> 56;
+	temp[8] = data64_2;
+	temp[9] = data64_2 >> 8;
+	temp[10] = data64_2 >> 16;
+	temp[11] = data64_2 >> 24;
+	temp[12] = data64_2 >> 32;
+	temp[13] = data64_2 >> 40;
+	temp[14] = data64_2 >> 48;
+	temp[15] = data64_2 >> 56;
+	temp[16] = data32; 
+	temp[17] = data32 >> 8; 
+	temp[18] = data32 >> 16; 
+	temp[19] = data32 >> 24; 
+	setValue(temp, 20);
 }
 
 void BLECharacteristic::setValue(float& data32) {

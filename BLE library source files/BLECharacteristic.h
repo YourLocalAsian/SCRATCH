@@ -72,10 +72,12 @@ public:
 	void setReadProperty(bool value);
 	void setValue(uint8_t* data, size_t size);
 	void setValue(std::string value);
+        void setValue(uint8_t& data8);
 	void setValue(uint16_t& data16);
 	void setValue(uint32_t& data32);
         void setValue(uint64_t& data64);
         void setValue(uint64_t& data64, uint64_t& data64_2);
+        void setValue(uint64_t& data64, uint64_t& data64_2, uint32_t data32);
 	void setValue(int& data32);
 	void setValue(float& data32);
 	void setValue(double& data64); 
