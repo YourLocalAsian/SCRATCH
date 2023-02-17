@@ -114,6 +114,7 @@ pinMode(CS, OUTPUT);
 digitalWrite(CS, HIGH);
 // initialize SPI:
 SPI.begin(SCK, MISO, MOSI, CS);
+SPI.setFrequency(2000000);
 Serial.println(MOSI);
 Serial.println(MISO);
 Serial.println(SCK);
@@ -152,11 +153,12 @@ while(1){
 //Change to JPEG capture mode and initialize the OV5642 module
 myCAM.set_format(JPEG);
 myCAM.InitCAM();
-myCAM.OV2640_set_JPEG_size(OV2640_352x288);
-myCAM.OV2640_set_Light_Mode(Office);
-myCAM.OV2640_set_Color_Saturation(Saturation2);
+myCAM.OV2640_set_JPEG_size(OV2640_640x480); //  OV2640_352x288
+myCAM.OV2640_set_Light_Mode(Home);
+myCAM.OV2640_set_Color_Saturation(Saturation1);
 delay(1000);
 myCAM.clear_fifo_flag();
+delay(100);
 Serial.println("All setup complete!");
 }
 
@@ -173,11 +175,13 @@ void loop() {
       char temp = Serial.read();
       if (temp == '0') {   
           myCAM.flush_fifo();
+          delay(100);
           myCAM.clear_fifo_flag();
+          delay(100);
           //Start capture
           Serial.println("Capturing");
           myCAM.start_capture();
-          delay(1);
+          delay(100);
           while (!myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
           if (myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK)){
               Serial.println("Reading fifo");
@@ -185,9 +189,11 @@ void loop() {
               read_fifo_burst_BLE(myCAM);
              //Clear the capture done flag
              myCAM.clear_fifo_flag();
+             delay(100);
           }
           else
               Serial.print("Capture end bit was 0");
+
       }
       else {
         Serial.println("Invalid input detected");
@@ -235,7 +241,7 @@ uint8_t read_fifo_burst_BLE(ArduCAM myCAM)
         to_send_2 = 0;
         to_send_3 = 0;
         length++;
-        delay(1);
+        delay(3); //was 2
         continue;
     }
     
