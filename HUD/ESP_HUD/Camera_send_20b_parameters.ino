@@ -86,7 +86,8 @@ class MyServerCallbacks: public BLEServerCallbacks {
  BLEDescriptor numberDescriptor(BLEUUID((uint16_t)0x2902));
  
 void setup() {
-//Setup Bluetooth server, characteristic and descriptor
+// put your setup code here, to run once:
+//Setup bluetooth server, characteristic and descriptor
 BLEDevice:: init("Number_Sender");
 pServer = BLEDevice::createServer();
 pServer->setCallbacks(new MyServerCallbacks());
@@ -111,17 +112,18 @@ Serial.println(F("ACK CMD ArduCAM Start! END"));
 // set the CS as an output:
 pinMode(CS, OUTPUT);
 digitalWrite(CS, HIGH);
-
 // initialize SPI:
 SPI.begin(SCK, MISO, MOSI, CS);
 SPI.setFrequency(2000000);
-
+Serial.println(MOSI);
+Serial.println(MISO);
+Serial.println(SCK);
+Serial.println(CS);
 //Reset the CPLD
 myCAM.write_reg(0x07, 0x80);
 delay(100);
 myCAM.write_reg(0x07, 0x00);
 delay(100);
-
 while(1){
   //Check if the ArduCAM SPI bus is OK
   myCAM.write_reg(ARDUCHIP_TEST1, 0x55);
@@ -164,42 +166,34 @@ void loop() {
   // put your main code here, to run repeatedly:
   //wait for connection
   while(!deviceConnected){
-    Serial.println("No connection detected");
-    delay(1000);
-  }
+            Serial.println("No connection detected");
+            delay(1000);
+        }
   
   //wait for serial monitor input, then capture and send
   if (Serial.available()){
       char temp = Serial.read();
       if (temp == '0') {   
-        // Flush fifo and clear flag
-        Serial.println("Flushing FIFO");
-        myCAM.flush_fifo();
-        delay(100);
-        myCAM.clear_fifo_flag();
-        delay(100);
-        Serial.println("Finished flushing FIFO");
-        
-        //Start capture
-        Serial.println("Capturing");
-        myCAM.start_capture();
-        delay(100);
-        
-        while (!myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
-        
-        if (myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK)){
-          Serial.println("Reading fifo");
-          delay(50);
-          read_fifo_burst_BLE(myCAM);
-          
-          // Clear the capture done flag
+          myCAM.flush_fifo();
           delay(100);
           myCAM.clear_fifo_flag();
           delay(100);
-        }
-        else{
-          Serial.print("Capture end bit was 0");
-        }
+          //Start capture
+          //Serial.println("Capturing");
+          myCAM.start_capture();
+          delay(100);
+          while (!myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
+          if (myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK)){
+              //Serial.println("Reading fifo");
+              delay(50);
+              read_fifo_burst_BLE(myCAM);
+             //Clear the capture done flag
+             myCAM.clear_fifo_flag();
+             delay(100);
+          }
+          else
+              Serial.print("Capture end bit was 0");
+
       }
       else {
         Serial.println("Invalid input detected");
@@ -209,6 +203,7 @@ void loop() {
 
 uint8_t read_fifo_burst_BLE(ArduCAM myCAM)
 {
+  
   uint8_t temp = 0, temp_last = 0;
   uint32_t length = 0;
   length = myCAM.read_fifo_length();
@@ -223,44 +218,57 @@ uint8_t read_fifo_burst_BLE(ArduCAM myCAM)
     Serial.println(F("ACK CMD Size is 0. END"));
     return 0;
   }
-
   myCAM.CS_LOW();
   myCAM.set_fifo_burst();//Set fifo burst mode
   temp =  SPI.transfer(0x00);
-  length--;
-
-  Serial.println("Before loop");
+  length --;
+ // Serial.println("Before loop");
   int counter = 0;
   uint64_t to_send = 0;
   uint64_t to_send_2 = 0;
   uint32_t to_send_3 = 0;
-  while (length--) {
+
+  uint8_t *pbyte = (uint8_t*)(&to_send);
+  uint8_t *pbyte_2 = (uint8_t*)(&to_send_2);
+  uint8_t *pbyte_3 = (uint8_t*)(&to_send_3);
+  
+  while ( length-- )
+  {
     if (counter == 20) {
-      //SEND BLUETOOTH
-      pCharacteristic->setValue(to_send, to_send_2, to_send_3);
-      Serial.println("\t\tValue set");
-      delay(2);
-      pCharacteristic->notify();
-      Serial.println("\t\tNotified");
-      //Serial.println(to_send, HEX);
-      //Serial.println(to_send_2, HEX);
-      //Serial.println();
-      // Serial.println(to_send, HEX);
-      counter = 0;
-      to_send = 0;
-      to_send_2 = 0;
-      to_send_3 = 0;
-      length++;
-      delay(2);
-      continue;
+        //SEND BLUETOOTH
+        pCharacteristic->setValue(to_send, to_send_2, to_send_3);
+        pCharacteristic->notify();
+        for(int i = 7; i >= 0; i--){
+          Serial.write(*(pbyte + i));
+          //Serial.write(0x5c);
+          //Serial.print("WTF");
+        }
+        for(int i = 7; i >= 0; i--){
+          Serial.write(*(pbyte_2 + i));
+        }
+        for(int i = 3; i >= 0; i--){
+          Serial.write(*(pbyte_3 + i));
+        }
+        //Serial.println(to_send, HEX);
+        //Serial.println(to_send_2, HEX);
+        //Serial.println();
+       // Serial.println(to_send, HEX);
+        counter = 0;
+        to_send = 0;
+        to_send_2 = 0;
+        to_send_3 = 0;
+        length++;
+        delay(3); //was 2
+        continue;
     }
     
     temp_last = temp;
-    temp = SPI.transfer(0x00);
+    temp =  SPI.transfer(0x00);
     int int_temp = (int) temp;
     int int_temp_last = (int) temp_last;
 
-    if (is_header == true) {
+    if (is_header == true)
+    {
       //Serial.print("to_send is: ");
       //Serial.println(to_send, HEX);
       if (counter >= 8 && counter < 16){
@@ -280,7 +288,7 @@ uint8_t read_fifo_burst_BLE(ArduCAM myCAM)
       //Serial.println(temp, HEX);
       //Serial.print("To send is now: ");
       //Serial.println(to_send, HEX);
-      counter++;
+      counter ++;
       //Serial.write(temp);
       //pCharacteristic->setValue(int_temp);
       //pCharacteristic->notify();
@@ -290,7 +298,6 @@ uint8_t read_fifo_burst_BLE(ArduCAM myCAM)
       //Serial.print("to_send is: ");
       //Serial.println(to_send, HEX);
       is_header = true;
-      Serial.println("\tFound header");
       if (counter >= 8 and counter < 16) {
         to_send_2 = int_temp_last << 8;
         to_send_2 += int_temp;
@@ -319,42 +326,71 @@ uint8_t read_fifo_burst_BLE(ArduCAM myCAM)
       //pCharacteristic->setValue(int_temp);
       //pCharacteristic->notify();
     }
-    if ( (temp == 0xD9) && (temp_last == 0xFF) ) {//If find the end ,break while,
-      Serial.println("\tFound footer");
-      break;
-    }
+    if ( (temp == 0xD9) && (temp_last == 0xFF) ) //If find the end ,break while,
+        break;
     delayMicroseconds(15);
   }
-  
   if(to_send != 0){
-    //Serial.print("Lastly, to_send is: ");
-    if (to_send_3 != 0) {
-      pCharacteristic->setValue(to_send, to_send_2, to_send_3);
-      Serial.println("\t\tValue set");
-      pCharacteristic->notify();
-      Serial.println("\t\tNotified");
-    }
-    else if (to_send_2 != 0){
-      pCharacteristic->setValue(to_send, to_send_2);
-      Serial.println("\t\tValue set");
-      pCharacteristic->notify();
-      Serial.println("\t\tNotified");
-    }
-    else {
-      pCharacteristic->setValue(to_send);
-      Serial.println("\t\tValue set");
-      pCharacteristic->notify();
-      Serial.println("\t\tNotified");
-    }
-     
-    //Serial.println(to_send, HEX);
-    to_send = 0;
-    to_send_2 = 0;
-    to_send_3 = 0;
-    counter = 0;
-  }
+      //Serial.print("Lastly, to_send is: ");
+      if (to_send_3 != 0) {
+         pCharacteristic->setValue(to_send, to_send_2);
+         pCharacteristic->notify();
+         delay(3);
 
-  Serial.println("After loop");
+         counter -= 16;
+         for (int i = counter; i > 0 ; i--){
+             pCharacteristic->setValue(*(pbyte_3 + i -1)); 
+             pCharacteristic->notify();
+             delay(3);
+         }
+         
+         for(int i = 7; i >= 0; i--){
+          Serial.write(*(pbyte + i));
+        }
+        for(int i = 7; i >= 0; i--){
+          Serial.write(*(pbyte_2 + i));
+        }
+        for(int i = 3; i >= 0; i--){
+          Serial.write(*(pbyte_3 + i));
+        }
+      }
+      else if (to_send_2 != 0){
+         pCharacteristic->setValue(to_send);
+         pCharacteristic->notify();
+         delay(3);
+
+         counter -= 8;
+         for (int i = counter; i > 0 ; i--){
+             pCharacteristic->setValue(*(pbyte_2 + i -1)); 
+             pCharacteristic->notify();
+             delay(3);
+         }
+         
+         for(int i = 7; i >= 0; i--){
+          Serial.write(*(pbyte + i));
+        }
+        for(int i = 3; i >= 0; i--){
+          Serial.write(*(pbyte_2 + i));
+        }
+      }
+      else {
+         for (int i = counter; i > 0 ; i--){
+             pCharacteristic->setValue(*(pbyte + i -1)); 
+             pCharacteristic->notify();
+             delay(3);
+         }
+        for(int i = 7; i >= 0; i--){
+          Serial.write(*(pbyte + i));
+        }  
+      }
+     
+      //Serial.println(to_send, HEX);
+      to_send = 0;
+      to_send_2 = 0;
+      to_send_3 = 0;
+      counter = 0;
+  }
+  //Serial.println("After loop");
   myCAM.CS_HIGH();
   is_header = false;
   return 1;
