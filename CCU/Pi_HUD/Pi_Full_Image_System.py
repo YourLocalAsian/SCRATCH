@@ -9,50 +9,54 @@ import time
 import sys
 import cv2
 import numpy as np
+import os
 
-def comp_vision(image_path):
+def comp_vision(image_path, final_image_name):
     # reading image
     img = cv2.imread(image_path)
-    #cv2.imshow("OG", img)
+    ##cv2.imshow("OG", img)
     #cv2.waitKey(0)
-
+    if img is None:
+        print('No image found')
+        return
     #hsv for white color detection and mask generation
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     white_lower = np.array([0,0,0]) #000
-    white_upper = np.array([30,255,255]) #30,255,255
+    white_upper = np.array([180,90,255]) #30,255,255
     mask = cv2.inRange(hsv, white_lower, white_upper)
 
     #cv2.imshow("Mask", mask)
-    #cv2.waitKey(0)
+    cv2.waitKey(0)
 
     #noise filtering for mask
     kernel = np.ones((7,7),np.uint8)
     #mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel) #EXPERIMENTAL
     #mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     #cv2.imshow("Mask -filtered", mask)
-    #cv2.waitKey(0)
+    cv2.waitKey(0)
 
     #mask application
     segmented_image = cv2.bitwise_and(img, img, mask=mask)
     #cv2.imshow("Masked image", segmented_image)
-    #cv2.waitKey(0)
+    cv2.waitKey(0)
 
     # converting image into grayscale and blurred image
     gray = cv2.cvtColor(segmented_image, cv2.COLOR_BGR2GRAY) #required for transforms, and reduces math
     blur = cv2.GaussianBlur(gray, (7,7), 0) #7x7 is the kernel used. Used for noise reduction
 
     #cv2.imshow("blurred image", blur)
-    #cv2.waitKey(0)
+    cv2.waitKey(0)
 
     #find circles in masked image -> white circules
     # Old values 140 22
     circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, 1.5, 15, param1=200
-            ,param2=27, minRadius=17, maxRadius=35)
+            ,param2=27, minRadius=14, maxRadius=35) #min radius was 17
 
+    
     radius = 0
     x = 0
     y = 0
-    white_parameter = 150 #trial and error
+    white_parameter = 190 #trial and error #was 150
     #draw circles
     if circles is not None:
         circles = np.uint16(np.around(circles))
@@ -90,48 +94,47 @@ def comp_vision(image_path):
         print('No circles')
 
     #show image
-    #cv2.imshow("Ball detection -segmented", segmented_image)
+    ##cv2.imshow("Ball detection -segmented", segmented_image)
     #cv2.waitKey(0)
 
     #crop and show cue ball
     if(x):
-        lowX =  x - radius +3 #the plus 3 are so that we ensure only the ball is visible, its the reverse of a buffer
-        highX = x + radius -3
-        lowY = y - radius  +3
-        highY = y + radius -3
+        lowX =  x - (radius -3) #the plus 3 are so that we ensure only the ball is visible, its the reverse of a buffer
+        highX = x + (radius -3)
+        lowY = y - (radius   - 3)
+        highY = y + (radius -3)
         print(f'The coordinates are {lowX}: {highX} and {lowY}: {highY}')
         cropped_image = img[lowY: highY, lowX: highX]
-        #cv2.imshow("cropped image", cropped_image)
+        ##cv2.imshow("cropped image", cropped_image)
         #cv2.waitKey(0)
         
         #hsv for red color detection
         hsv_laser = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2HSV)
         
         #pink mask
-        red_lower = np.array([155,0,0]) #155 0 0
-        red_upper = np.array([180,120,255]) #180 120 255
-        mask_laser = cv2.inRange(hsv_laser, red_lower, red_upper)
+        green_lower = np.array([35,0,0]) #155 0 0
+        green_upper = np.array([75,255,255]) #180 120 255
+        mask_laser = cv2.inRange(hsv_laser, green_lower, green_upper)
 
-        #cv2.imshow("Mask for Laser", mask_laser)
+        ##cv2.imshow("Mask for Laser", mask_laser)
         #cv2.waitKey(0)
 
         #noise filtering for mask
         kernel_laser = np.ones((2,2),np.uint8)
         mask_laser = cv2.morphologyEx(mask_laser, cv2.MORPH_CLOSE, kernel_laser) #EXPERIMENTAL
-        #mask_laser = cv2.morphologyEx(mask_laser, cv2.MORPH_OPEN, kernel_laser) 
+        mask_laser = cv2.morphologyEx(mask_laser, cv2.MORPH_OPEN, kernel_laser) 
         #cv2.imshow("Mask -filtered Laser", mask_laser)
-        #cv2.waitKey(0)
+        cv2.waitKey(0)
         
-        laser_x = 0
+        aser_x = 0
         laser_y = 0
         laser_found = False
-        lowest_G = 255
-        lowest_B = 255
+        biggest_G = 0
         #gray_ball = cv2.cvtColor(cropped_image,cv2.COLOR_BGR2GRAY)
-        #cv2.imshow("grayball", gray_ball)
+        ##cv2.imshow("grayball", gray_ball)
         #cv2.waitKey(0)
         #ret,thresh = cv2.threshold(gray_ball, 205, 255, cv2.THRESH_BINARY_INV)
-        #cv2.imshow("threshold", thresh)
+        ##cv2.imshow("threshold", thresh)
         #cv2.waitKey(0)
 
         contours, hier = cv2.findContours(mask_laser, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -141,22 +144,29 @@ def comp_vision(image_path):
                 #cv2.drawContours(cropped_image, [i], -1, (255,0,0), 2)
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
-                if(cropped_image[cy][cx][0] < lowest_B and cropped_image[cy][cx][1] < lowest_G #must be the reddest thing
-                and cropped_image[cy][cx][0] >135 and cropped_image[cy][cx][1] >135): #prevents detecting table as well
+                pixel_val_g = cropped_image[cy][cx][1]
+                pixel_val_b = cropped_image[cy][cx][0]
+                pixel_val_r =cropped_image[cy][cx][2]
+                cv2.circle(cropped_image, (cx,cy),1, (0,0,0), -1)
+                if(pixel_val_g > biggest_G #must be the greenest thing
+                and pixel_val_g>135 and pixel_val_b >135): #prevents detecting table as well
                     laser_x = cx
                     laser_y = cy
                     laser_found = True
-                    lowest_B = cropped_image[cy][cx][0]
-                    lowest_G  =cropped_image[cy][cx][1]
-                cv2.circle(cropped_image, (cx,cy),1, (0,0,0), -1)
+                    #lowest_B = cropped_image[cy][cx][0]
+                    biggest_G  =cropped_image[cy][cx][1]
+                    cv2.circle(cropped_image, (cx,cy),1, (0,255,0), -1)
+                else:
+                    print(f'fuck my life. BGR is {cropped_image[cy][cx][0]} {cropped_image[cy][cx][1]} {cropped_image[cy][cx][2]}')
         if(laser_found):
             laser_x = (laser_x/(highX - lowX)* 30.0 - 15.0)//1.0
             laser_y = (-(laser_y/(highY - lowY)* 30.0) + 15.0)//1.0   
             print(f'The LASER coordinates are ({laser_x},{laser_y})')
+            cv2.imwrite(final_image_name,cropped_image)
         else:
             print("No laser found")
         
-        #cv2.imshow("Contours", cropped_image)
+        ##cv2.imshow("Contours", cropped_image)
         #cv2.waitKey(0)
     else:
         print('no balls found!')
@@ -298,29 +308,45 @@ def on_new_number(iface, changed_props, invalidated_props):
     #number = int(value[0] ) #struct.unpack(fmt, bytes(payload[0:struct.calcsize(fmt)])) REMOVED MENA
     #received_integers.append(number.to_bytes(4, 'little'))
     
-    received_integers.append(value[7])
-    received_integers.append(value[6])
-    received_integers.append(value[5])
-    received_integers.append(value[4])
-    received_integers.append(value[3])
-    received_integers.append(value[2])
-    received_integers.append(value[1])
-    received_integers.append(value[0])
-    
-    if len(value) >= 16:
+    if (len(value) > 7):
+        received_integers.append(value[7])
+    if (len(value) > 6):
+        received_integers.append(value[6])
+    if (len(value) > 5):
+        received_integers.append(value[5])
+    if (len(value) > 4):
+        received_integers.append(value[4])
+    if (len(value) > 3):
+        received_integers.append(value[3])
+    if (len(value) > 2):
+        received_integers.append(value[2])
+    if (len(value) > 1):
+        received_integers.append(value[1])
+    if (len(value) > 0):
+        received_integers.append(value[0])
+    if (len(value) > 15):
         received_integers.append(value[15])
+    if (len(value) > 14):
         received_integers.append(value[14])
+    if (len(value) > 13):
         received_integers.append(value[13])
+    if (len(value) > 12):
         received_integers.append(value[12])
+    if (len(value) > 11):
         received_integers.append(value[11])
+    if (len(value) > 10):
         received_integers.append(value[10])
+    if (len(value) > 9):
         received_integers.append(value[9])
+    if (len(value) > 8):
         received_integers.append(value[8])
-
-    if len(value) == 20:
+    if (len(value) > 19):
         received_integers.append(value[19])
+    if (len(value) > 18):
         received_integers.append(value[18])
+    if (len(value) > 17):
         received_integers.append(value[17])
+    if (len(value) > 16):
         received_integers.append(value[16])
     
     
@@ -421,12 +447,14 @@ if __name__ == '__main__':
                 print("Waiting for connection")
                 time.sleep(2)
             if(received_integers and bytes([received_integers[-1]]) == bytes([217]) and bytes([received_integers[-2]]) == bytes([255])):
-                with open("test_20.jpeg", "wb") as fp:
+                if (os.path.isfile('fuck_it_we_ball.jpeg')):
+                    os.remove('fuck_it_we_ball.jpeg')
+                with open("fuck_it_we_ball.jpeg", "wb") as fp:
                     for integer in received_integers:
                         fp.write(bytes([integer]))
                 print("Done!")
                 received_integers = []
-                comp_vision('test_20.jpeg')
+                comp_vision('fuck_it_we_ball.jpeg', 'final_contours.jpeg')
             #elif (received_integers):
             #    print(f"last in array is {bytes([received_integers[-1]])} and second to last is {bytes([received_integers[-2]])}. should be {bytes([217])} and {bytes([255])}")   
 
