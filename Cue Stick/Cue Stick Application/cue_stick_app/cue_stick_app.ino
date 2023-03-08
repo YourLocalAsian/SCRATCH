@@ -1,18 +1,14 @@
 // Cue Stick Application
 
 #include <stdint.h>
-#include "shot_fms.h"
-
-#define STANDBY_MODE 0
-#define SHOT_MODE 1
-#define DEBUG_MODE 2
-#define KONAMI_CODE 87
+#include "shot_fsm.h"
 
 // * Global Variables 
-int cueStickState;
 int buttonHistoryArray[10];
 int buttonHistoryIndex;
 bool konamiCodeInput;
+
+
 
 // Main Functions
 void connectToCCU(); // TODO
@@ -26,40 +22,42 @@ void setup() {
     // Configure cue stick hardware
     setupHardware(); // * call modified version of ported_simulation's setup
 
-     // Setup Bluetooth connection to CCU
-    connectToCCU(); // TODO: figure out with Mena
-
     // Set stick to standby mode
-    cueStickState = STANDBY_MODE;
+    fsmState = STANDBY_MODE;
 }
 
 void loop() {
-    switch(cueStickState) {
+    switch(fsmState) {
         case STANDBY_MODE: {
             int numOfButtonsPressed = readAllButtons(); // wait for button input
             // * Printing happens in readAllButtons()
             storeButtonHistory(); // store button inputs for checking for input codes
             checkForKonami();
+            break;
         } 
         
         case SHOT_MODE: {
             fmsLoop();
+            break;
         } 
         
         case KONAMI_CODE: {
             Serial.println("You typed the Konami code. You get 30 lives");
-            cueStickState = STANDBY_MODE;
+            fsmState = STANDBY_MODE;
+            break;
+        }
+
+        case DEBUG_MODE: {
+            Serial.println("TBD");
+            break;
         }
 
         default: {
-
+            Serial.println("IDK HOW YOU GOT HERE");
+            fsmState = DEBUG_MODE;
+            break;
         }
     }   
-}
-
-// TODO: Figure out how to connect cue stick to CCU
-void connectToCCU() { 
-
 }
 
 void storeButtonHistory() {
@@ -70,6 +68,7 @@ void storeButtonHistory() {
         }
     }
 }
+
 void checkForKonami() { // check for Konami code in reverse
     bool possibleCode = true;
     int tempIndex = (buttonHistoryIndex + 1) % 10;
@@ -105,5 +104,5 @@ void checkForKonami() { // check for Konami code in reverse
         tempIndex = (tempIndex + 1) % 10;
     }
     
-    if (possibleCode) cueStickState = KONAMI_CODE;
+    if (possibleCode) fsmState = KONAMI_CODE;
 }

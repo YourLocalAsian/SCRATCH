@@ -58,7 +58,10 @@ bool printYaw;
 const int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 String ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
                             "FAST", "POWER", "BREAK", "POWER_BREAK"};
-String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING_SHOT", "SHOT_TAKEN", "PAUSED"};
+enum fsmStates      {NOT_READY, READY, WAITING, TAKING_SHOT, SHOT_TAKEN, PAUSED, 
+                     STANDBY_MODE, SHOT_MODE, DEBUG_MODE, KONAMI_CODE};
+String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING SHOT", "SHOT TAKEN", "PAUSED", 
+                     "STANDBY MODE", "SHOT MODE", "DEBUG MODE", "KONAMI CODE"};
 
 // Supplementary functions
 void checkStationary(double avgAcceleration);

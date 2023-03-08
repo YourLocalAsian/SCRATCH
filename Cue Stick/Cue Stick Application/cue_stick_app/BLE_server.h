@@ -53,12 +53,12 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic* pCharacteristic) {
         uint8_t * Data = pCharacteristic->getData();
         Serial.printf("State was set to: %d\n", Data[0]);
-  
+        
         //set the characteristic to that char & start service
         pCharacteristic->setValue(num);
         pCharacteristic->notify();
-     }
- };
+    }
+};
  
 // Function to set up BLE connection
 void setupBLE() {
@@ -70,7 +70,7 @@ void setupBLE() {
     cueServer->setCallbacks(new MyServerCallbacks());
 
     // Create the BLE Service
-    cueService = cueServer->createService(SERVICE_UUID);
+    cueService = cueServer->createService(BLEUUID(SERVICE_UUID), 30,0);
     
     // Create BLE Characteristics and Create a BLE Descriptor
     createCharacteristics();
@@ -122,6 +122,7 @@ void createCharacteristics() {
                                                      BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE_NR);
     fsmDescriptor.setValue("FSM State");
     fsmCharacteristic->addDescriptor(&fsmDescriptor);
+    fsmCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 }
 
 // * Set characteristic value and notify client

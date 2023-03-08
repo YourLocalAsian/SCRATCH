@@ -43,7 +43,7 @@ BLEDescriptor rollDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor pitchDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor yawDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor buttonDescriptor(BLEUUID((uint16_t)0x2903));
-BLEDescriptor fsmDescriptor(BLEUUID((uint16_t)0x2902));
+BLEDescriptor fsmDescriptor(BLEUUID((uint16_t)0x2903));
 
 // Function prototypes
 void createCharacteristics();
@@ -53,8 +53,13 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic* pCharacteristic) {
         uint8_t * Data = pCharacteristic->getData();
         Serial.printf("State was set to: %d\n", Data[0]);
-     }
- };
+
+        /*
+        //set the characteristic to that char & start service
+        pCharacteristic->setValue(Data[0]);
+        pCharacteristic->notify();*/
+    }
+};
  
 // Function to set up BLE connection
 void setupBLE() {
