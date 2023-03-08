@@ -44,3 +44,12 @@ class OperatingMode(Enum):
     TRAINING = 1
 
 operation_mode = OperatingMode.GAME
+
+class ButtonInput(Enum):
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
+    A = 4
+    B = 5
+    NONE = 6

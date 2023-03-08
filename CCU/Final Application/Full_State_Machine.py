@@ -20,22 +20,49 @@ def scan_for_devices(): # TODO
     print("Glove found")
     return
 
-def set_impaired():
+def set_impaired(): # TODO
+    global user_impaired
+
     print("Asking if user is impaired")
     time.sleep(1)
     user_impaired = False # TODO: remove with actual setting
     return
 
-def game_mode():
-    print("Entered game mode")
+def set_operating_mode(): # TODO
+    global operation_mode
+
+    if user_impaired == True: # only option when blind mode is game mode
+        operation_mode = OperatingMode.GAME
+        print("User impaired - defaulting to Game Mode")
+    else:
+        # play audio cue for selection
+        # get user response
+        if BUTTON_CHAR_STICK_UUID == ButtonInput.A: # Press A = Game Mode # TODO: change this to value of characteristic
+            operation_mode = OperatingMode.GAME
+        elif BUTTON_CHAR_STICK_UUID == ButtonInput.B: # Press B = Training Mode
+            operation_mode = OperatingMode.TRAINING
+
+    operation_mode = OperatingMode.TRAINING # TODO: Force mode selection
+    print("Forced mode:", operation_mode)
+
+def game_mode_std(): # TODO
+    print("Entered standard game mode")
     time.sleep(5)
-    print("Exiting game mode")
+    print("Exiting standard game mode")
     return
 
-def training_mode():
+def game_mode_bld(): # TODO
+    print("Entered blind game mode")
+    time.sleep(5)
+    print("Exiting blind game mode")
+    return
+
+def training_mode(): # TODO
     print("Entered training mode")
     time.sleep(5)
-    print("Exiting game mode")
+    print("Generating random PoC & power")
+    time.sleep(5)
+    print("Exiting training mode")
     return
 
 def on_disconnect(): # TODO
@@ -87,23 +114,33 @@ if __name__ == '__main__':
     # Connect to all peripherals
     print("Connecting to all peripherals")
     scan_for_devices()
-    print("Successfully connected")
+    print(f"Successfully connected\n")
 
     # Determine blind vs not blind
-    print("Setting (not) blind")
+    print("Calling set_impaired()")
     set_impaired()
-    print("Ableness set")
+    print(f"Impairedness set:", user_impaired, "\n")
 
     # Determine Game Mode VS Training Mode
+    print("Calling set_operating_mode()")
+    set_operating_mode()
+    print(f"Operating mode set:", operation_mode, "\n")
 
     # Normal Operation
     if operation_mode == OperatingMode.GAME:
-        print("Entering game mode")
-        game_mode()
+        if user_impaired == False:
+            print("Calling game_mode_std")
+            game_mode_std()
+        elif user_impaired == True:
+            print("Calling game_mode_bld")
+            game_mode_bld()
     elif operation_mode == OperatingMode.TRAINING:
-        print("Entering training mode")
-        training_mode()
+        if user_impaired == False:
+            print("Calling training mode")
+            training_mode()
+        elif user_impaired == True:
+            print("Error - blind user cannot enter training mode")
     else:
-        print("IDK how we got here")
+        print("Error - IDK how we got here")
 
     print("Finished")
