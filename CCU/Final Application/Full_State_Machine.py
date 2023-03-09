@@ -46,34 +46,43 @@ def set_operating_mode(): # TODO
         elif BUTTON_CHAR_STICK_UUID == ButtonInput.B: # Press B = Training Mode
             operation_mode = OperatingMode.TRAINING
 
-    operation_mode = OperatingMode.GAME # TODO: Force mode selection
+    operation_mode = OperatingMode.TRAINING # TODO: Force mode selection
     print("Forced mode:", operation_mode)
 
 def on_disconnect(): # TODO
     return
 
 # Game Mode Functions
-def game_mode(angle, force): # Called continously until shot is completed
+def game_mode(angle, strength): # Called continously until shot is completed
+    global user_impaired
+
     debug_print = True
     
     if debug_print:
         print("Entered standard game mode")
     
     # Check if game completed
-    if force > 100: # force is set to max value when game is completed 
+    if strength > 100: # strength is set to max value when game is completed 
         if debug_print:
             print("Game completed")
             time.sleep(1)
         return
     
     # Check if ongoing game
-    elif force > 0: # force is positive during on going game
+    elif strength > 0: # strength is positive during on going game
         # User Shot Attempt
-        if debug_print:
-            print("Calling standard user shot attempt")
-            time.sleep(1)
+        if user_impaired:
+            if debug_print:
+                print("Calling blind user shot attempt")
+                time.sleep(1)
+            shot_attempt_bld()
+        else:
+            if debug_print:
+                print("Calling standard user shot attempt")
+                time.sleep(1)
+            shot_attempt_std()
     
-    else: # force is negative when starting a game
+    else: # strength is negative when starting a game
         # Ensure connection to VISION has been established
         if debug_print:
             print("Connection to VISION verified")
@@ -92,28 +101,72 @@ def game_mode(angle, force): # Called continously until shot is completed
     # Receive and parse shot data
     if debug_print:
         print("Shot data received")
+    
     p_angle = 0
-    p_force = 1
+    p_strength = 1
     
     # Make recursive call
     if debug_print:
         print("Making recursive call to game_mode_std()")
     
-    game_mode(p_angle, p_force)
+    game_mode(p_angle, p_strength)
 
     return
 
 # Training Mode Functions
-def training_mode(): # TODO
-    print("Entered training mode")
-    time.sleep(5)
-    print("Generating random PoC & power")
-    time.sleep(5)
-    print("Exiting training mode")
+def training_mode(shot_x, shot_y, strength): # TODO
+    debug_print = True
+    continue_playing = True
+
+    # Check if training just started, strength is set to zero on startup
+    if strength != 0:
+        # Call user shot attempt
+        if debug_print:
+            print("Calling standard user shot attempt")
+            time.sleep(1)
+        shot_attempt_std()
+
+        # Ask user if they want to continue
+        continue_playing = False # ! IDK how we want to do this in practice
+        
+    else:
+        if debug_print:
+            print("Welcome to Training Mode")
+            time.sleep(1)
+
+    if continue_playing:
+        # Generate PoC and Power
+        if debug_print:
+            print("Generating random PoC & power")
+        p_x = 0
+        p_y = 0
+        p_strength = 1
+
+        # Make recursive call
+        if debug_print:
+            print("Making recursive call to training_mode()")
+            time.sleep(1)
+        training_mode(p_x, p_y, p_strength)
+    
+    else:
+        if debug_print:
+            print("Exiting training_mode()")
+            time.sleep(1)
+
     return
 
 # Shot Attempt Functions
+def shot_attempt_std():
+    print("\tDoing standard shot stuff")
+    time.sleep(5)
+    
+    return
 
+def shot_attempt_bld():
+    print("\tDoing blind shot stuff")
+    time.sleep(5)
+    
+    return
 
 # HUD Interactions
 def connect_to_hud(): # TODO
@@ -175,16 +228,12 @@ if __name__ == '__main__':
 
     # Normal Operation
     if operation_mode == OperatingMode.GAME:
-        if user_impaired == False:
-            print("Calling game_mode_std")
-            game_mode(0, -1)
-        elif user_impaired == True:
-            print("Calling game_mode_bld")
-            game_mode()
+        print("Calling game_mode")
+        game_mode(0, -1)
     elif operation_mode == OperatingMode.TRAINING:
         if user_impaired == False:
-            print("Calling training mode")
-            training_mode()
+            print("Calling training_mode")
+            training_mode(0, 0, 0)
         elif user_impaired == True:
             print("Error - blind user cannot enter training mode")
     else:
