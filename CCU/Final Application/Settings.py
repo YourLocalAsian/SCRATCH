@@ -26,7 +26,7 @@ YAW_CHAR_GLOVE_UUID = 'bb924d12-98fc-11ed-a8fc-0242ac120002'
 DIST_CHAR_GLOVE_UUID = 'bb925050-98fc-11ed-a8fc-0242ac120002'
 
 # VISION Services
-VISION_SRV = '' # TODO
+VISION_SRV = '' # TODO: Talk to Noah or create these and give it to him
 ANGLE_CHAR_UUID = '' # TODO
 STRENGTH_CHAR_UUID = '' # TODO
 
@@ -35,6 +35,36 @@ hud_connected = False
 stick_connected = False
 glove_connected = False
 vision_connected = False
+
+# BLE Characteristics # ! Luke - IDK about monitors or threads
+hud_monitor = None #This is a temporary name for the client/Central object
+hud_bt_thread = None
+hud_mode_char = None
+hud_power_char = None
+hud_poi_x_char = None
+hud_poi_y_char = None
+hud_angle_char = None
+hud_fsm_char = None
+hud_audio_char = None
+hud_image_char = None
+hud_notification_cb_set = False
+
+stick_monitor = None #This is a temporary name for the client/Central object
+stick_bt_thread = None
+stick_acc_char = None
+stick_roll_char = None
+stick_pitch_char = None
+stick_yaw_char = None
+stick_button_char = None
+stick_fms_char = None
+stick_notification_cb_set = False
+
+glove_monitor = None #This is a temporary name for the client/Central object
+glove_bt_thread = None
+glove_yaw_char = None
+glove_dist_char = None
+
+# TODO: make BLE characteristics for VISION communication
 
 # CCU State Variables
 user_impaired = False
