@@ -53,7 +53,7 @@ def on_disconnect(): # TODO
     return
 
 # Game Mode Functions
-def game_mode_std(angle, force): # Called continously until shot is completed
+def game_mode(angle, force): # Called continously until shot is completed
     debug_print = True
     
     if debug_print:
@@ -99,14 +99,8 @@ def game_mode_std(angle, force): # Called continously until shot is completed
     if debug_print:
         print("Making recursive call to game_mode_std()")
     
-    game_mode_std(p_angle, p_force)
+    game_mode(p_angle, p_force)
 
-    return
-
-def game_mode_bld(): # TODO
-    print("Entered blind game mode")
-    time.sleep(5)
-    print("Exiting blind game mode")
     return
 
 # Training Mode Functions
@@ -183,10 +177,10 @@ if __name__ == '__main__':
     if operation_mode == OperatingMode.GAME:
         if user_impaired == False:
             print("Calling game_mode_std")
-            game_mode_std(0, -1)
+            game_mode(0, -1)
         elif user_impaired == True:
             print("Calling game_mode_bld")
-            game_mode_bld()
+            game_mode()
     elif operation_mode == OperatingMode.TRAINING:
         if user_impaired == False:
             print("Calling training mode")
