@@ -5,7 +5,7 @@ import sys
 import random
 from Settings import *
 
-# Overall CCU Functions
+# Setup Functions
 def scan_for_devices(): # TODO
     print("Searching for HUD")
     time.sleep(0.5)
@@ -24,8 +24,12 @@ def set_impaired(): # TODO
     global user_impaired
 
     print("Asking if user is impaired")
-    time.sleep(1)
+    # play audio asking for impairness
+    # wait for button notification
     user_impaired = False # TODO: remove with actual setting
+    # play audio confirming choice
+    time.sleep(1)
+    
     return
 
 def set_operating_mode(): # TODO
@@ -42,13 +46,61 @@ def set_operating_mode(): # TODO
         elif BUTTON_CHAR_STICK_UUID == ButtonInput.B: # Press B = Training Mode
             operation_mode = OperatingMode.TRAINING
 
-    operation_mode = OperatingMode.TRAINING # TODO: Force mode selection
+    operation_mode = OperatingMode.GAME # TODO: Force mode selection
     print("Forced mode:", operation_mode)
 
-def game_mode_std(): # TODO
-    print("Entered standard game mode")
-    time.sleep(5)
-    print("Exiting standard game mode")
+def on_disconnect(): # TODO
+    return
+
+# Game Mode Functions
+def game_mode_std(angle, force): # Called continously until shot is completed
+    debug_print = True
+    
+    if debug_print:
+        print("Entered standard game mode")
+    
+    # Check if game completed
+    if force > 100: # force is set to max value when game is completed 
+        if debug_print:
+            print("Game completed")
+            time.sleep(1)
+        return
+    
+    # Check if ongoing game
+    elif force > 0: # force is positive during on going game
+        # User Shot Attempt
+        if debug_print:
+            print("Calling standard user shot attempt")
+            time.sleep(1)
+    
+    else: # force is negative when starting a game
+        # Ensure connection to VISION has been established
+        if debug_print:
+            print("Connection to VISION verified")
+            time.sleep(1)
+
+    # Request next shot
+    if debug_print:
+        print("Asking VISION for next shot")
+        time.sleep(1)
+
+    # Wait for shot data
+    if debug_print:
+        print("Waiting for shot data")
+        time.sleep(1)
+
+    # Receive and parse shot data
+    if debug_print:
+        print("Shot data received")
+    p_angle = 0
+    p_force = 1
+    
+    # Make recursive call
+    if debug_print:
+        print("Making recursive call to game_mode_std()")
+    
+    game_mode_std(p_angle, p_force)
+
     return
 
 def game_mode_bld(): # TODO
@@ -57,6 +109,7 @@ def game_mode_bld(): # TODO
     print("Exiting blind game mode")
     return
 
+# Training Mode Functions
 def training_mode(): # TODO
     print("Entered training mode")
     time.sleep(5)
@@ -65,8 +118,8 @@ def training_mode(): # TODO
     print("Exiting training mode")
     return
 
-def on_disconnect(): # TODO
-    return
+# Shot Attempt Functions
+
 
 # HUD Interactions
 def connect_to_hud(): # TODO
@@ -130,7 +183,7 @@ if __name__ == '__main__':
     if operation_mode == OperatingMode.GAME:
         if user_impaired == False:
             print("Calling game_mode_std")
-            game_mode_std()
+            game_mode_std(0, -1)
         elif user_impaired == True:
             print("Calling game_mode_bld")
             game_mode_bld()
