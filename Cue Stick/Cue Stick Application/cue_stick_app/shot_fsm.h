@@ -2,7 +2,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
-#include <typeinfo>
+//#include <typeinfo>
 #include <Vector.h>
 
 #include "buttons.h"
@@ -31,6 +31,7 @@ int mapped;
 int zeroCount;
 bool zeroedOut = false;
 bool isStationary;
+bool isLevel;
 bool shotReady;
 double accelerationBase;
 double globalMinima = 0;
@@ -58,8 +59,7 @@ bool printYaw;
 const int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 String ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
                             "FAST", "POWER", "BREAK", "POWER_BREAK"};
-enum fsmStates      {NOT_READY, READY, WAITING, TAKING_SHOT, SHOT_TAKEN, PAUSED, 
-                     STANDBY_MODE, SHOT_MODE, DEBUG_MODE, KONAMI_CODE};
+enum fsmStates      {NOT_READY, READY, WAITING, TAKING_SHOT, SHOT_TAKEN, PAUSED};
 String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING SHOT", "SHOT TAKEN", "PAUSED", 
                      "STANDBY MODE", "SHOT MODE", "DEBUG MODE", "KONAMI CODE"};
 
@@ -121,6 +121,118 @@ void setupHardware() {
 
 // Main functionality of simulation
 void fsmLoop() {
+    // * Check if BLE connection is on
+    while (!deviceConnected) {
+        Serial.println("No connection detected");
+        digitalWrite(LASER, !digitalRead(LASER));
+        delay(250);
+    }
+
+    digitalWrite(LASER, HIGH);
+    
+    // * Check if loop is paused
+    while (!isRunning) {
+        Serial.println("Program is paused");
+        
+        if (checkButton(buttonA)) {
+            isRunning = true;
+            fsmState = 0;
+            delay(3000); // Add additional 3s wait
+            break;
+        }
+        
+        delay(2000);
+    }
+    
+    //* Get accleration and orientation vectors
+    imu::Vector<3> accelerationVector = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    imu::Quaternion quaternionVector = bno.getQuat();
+    quaternionVector.normalize();
+    imu::Vector<3> eulerVector = quaternionVector.toEuler();
+
+    if (!zeroedOut) { // If not zeroedOut
+        if (zeroCount < 20) { // If zeroCount < 20
+            double roll = -180/M_PI * eulerVector.z();
+            double pitch = 180/M_PI * eulerVector.y();
+            double yaw = 180/M_PI * eulerVector.x();
+            Serial.printf("Roll = %lf\n", roll);
+            if (!isnan(roll)) {
+                calibrationData[0] += accelerationVector.x();
+                calibrationData[1] += roll;
+                calibrationData[2] += pitch;
+                calibrationData[3] += yaw;
+                Serial.printf("zeroCount = %d\n", zeroCount);
+                zeroCount++;
+            }
+        }
+
+        if (zeroCount == 20) { // If zeroCount == 20
+            for (int i = 0; i < 4; i++) calibrationData[i] /= 20; // Divide calibrationData values by 20
+            Serial.printf("Roll: %lf, Pitch: %lf, Yaw: %lf\n", calibrationData[1], calibrationData[2], calibrationData[3]);
+            zeroedOut = true; // Set zeroedOut to true
+        }
+    }
+   
+    if (zeroedOut) { // If zeroedOut
+        avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
+        checkStationary(avgAcceleration); // Check if stick is stationary
+        double pitch = 180/M_PI * (double) eulerVector.y() - calibrationData[2];
+        isLevel = (abs(pitch) < 5.0); // cue stick is considered level is abs of pitch is less than 5 degrees
+
+        // FSM
+        if (!isStationary && !shotReady) { // State 0: Not stationary, not ready to take shot
+            fsmState = 0;
+        } else if (isStationary && isLevel && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
+            accelerationBase = avgAcceleration;
+            floodStationary(avgAcceleration);
+            globalMinima = avgAcceleration;
+            shotReady = true;
+            fsmState = 1;
+        } else if (isStationary && shotReady && accelerationValues.empty()) { // State 2: Stationary, ready to take shot, hasn't moved -> wait for shot
+            fsmState = 2;
+        } else if (!isStationary && shotReady) { // State 3: Not stationary, ready to take shot (taking shot) -> self
+            double pushedValue = avgAcceleration - accelerationBase;
+            accelerationValues.push_back(pushedValue);
+            fsmState = 3;
+        } else if (isStationary && shotReady && !accelerationValues.empty()) {  // State 4: Stationary, ready to take shot (done taking shot) -> reset
+            for (int i = 0; i < 9; i++) accelerationValues.pop_back();
+            floodStationary();
+            shotAttempt = true;
+            shotReady = false;
+            fsmState = 4;
+        }
+
+        // Button press overrides FMS
+        if (checkButton(buttonA)) {
+            isRunning = false;
+            fsmState = 5;
+        }
+        
+    }
+
+    // Print data
+    if (printGraphForm)
+        graphPrint(eulerVector);
+    else basicPrint(eulerVector);
+    
+    if (shotAttempt) {
+        minima = findGlobalMinima(accelerationValues);
+        accelerationValues.clear();
+        mapped = mapAcceleration(minima);
+        if (printMappedValue) {
+            Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
+            if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
+        }
+        shotAttempt = false;
+    }
+
+    oldAcceleration = avgAcceleration;
+
+    delay(BNO055_SAMPLERATE_DELAY_MS);
+}
+
+
+void blindFsmLoop() {
     // * Check if BLE connection is on
     while (!deviceConnected) {
         Serial.println("No connection detected");

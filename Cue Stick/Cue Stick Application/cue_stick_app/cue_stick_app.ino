@@ -1,5 +1,4 @@
 // Cue Stick Application
-
 #include <stdint.h>
 #include "shot_fsm.h"
 
@@ -7,7 +6,8 @@
 int buttonHistoryArray[10];
 int buttonHistoryIndex;
 bool konamiCodeInput;
-
+uint8_t operationMode;
+enum opStates   {STANDBY_MODE, SHOT_MODE, BLIND_MODE, DEBUG_MODE, KONAMI_CODE};
 
 
 // Main Functions
@@ -22,24 +22,34 @@ void setup() {
     // Configure cue stick hardware
     setupHardware(); // * call modified version of ported_simulation's setup
 
-    // Set stick to standby mode
-    fsmState = STANDBY_MODE;
+    // Set stick to NOT_READY, STANDBY_MODE
+    fsmState = NOT_READY;
+    operationMode = STANDBY_MODE;
 }
 
 void loop() {
-    switch(fsmState) {
+    // Check if CCU updated characteristics
+    fsmState = *(fsmCharacteristic->getData());
+    operationMode = *(operationCharacteristic->getData());
+    
+    switch(operationMode) {
         case STANDBY_MODE: {
             int numOfButtonsPressed = readAllButtons(); // wait for button input
             // * Printing happens in readAllButtons()
-            storeButtonHistory(); // store button inputs for checking for input codes
+            storeButtonHistory(); // store button inputs for checking for input codes & notify is pressed
             checkForKonami();
             break;
         } 
         
         case SHOT_MODE: {
-            fmsLoop();
+            fsmLoop();
             break;
-        } 
+        }
+
+        case BLIND_MODE: {
+            blindFsmLoop();
+            break;
+        }
         
         case KONAMI_CODE: {
             Serial.println("You typed the Konami code. You get 30 lives");
@@ -65,6 +75,7 @@ void storeButtonHistory() {
         if (pressedArray[index]) { // if button is pressed
             buttonHistoryArray[buttonHistoryIndex] = index; // Store button at current buttonHistoryIndex in buttonHistoryArray
             buttonHistoryIndex = (buttonHistoryIndex + 1) % 10; // buttonHistoryIndex index
+            updateCharacteristic(buttonCharacteristic, index); // notify CCU of button press
         }
     }
 }

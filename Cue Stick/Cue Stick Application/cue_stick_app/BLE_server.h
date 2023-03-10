@@ -12,6 +12,7 @@
 #define YAW_UUID "1d710f6e-929a-11ed-a1eb-0242ac120002"
 #define BUTTON_UUID "1d7110c2-929a-11ed-a1eb-0242ac120002"
 #define FSM_UUID "1d7111da-929a-11ed-a1eb-0242ac120002"
+#define OP_UUID "ada3120a-bf6b-11ed-afa1-0242ac120002"
 
 bool deviceConnected = false;
 
@@ -37,6 +38,7 @@ BLECharacteristic *pitchCharacteristic;
 BLECharacteristic *yawCharacteristic;
 BLECharacteristic *buttonCharacteristic;
 BLECharacteristic *fsmCharacteristic;
+BLECharacteristic *operationCharacteristic;
 
 BLEDescriptor accelerationDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor rollDescriptor(BLEUUID((uint16_t)0x2903));
@@ -44,6 +46,7 @@ BLEDescriptor pitchDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor yawDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor buttonDescriptor(BLEUUID((uint16_t)0x2903));
 BLEDescriptor fsmDescriptor(BLEUUID((uint16_t)0x2903));
+BLEDescriptor operationDescriptor(BLEUUID((uint16_t)0x2903));
 
 // Function prototypes
 void createCharacteristics();
@@ -53,10 +56,6 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic* pCharacteristic) {
         uint8_t * Data = pCharacteristic->getData();
         Serial.printf("State was set to: %d\n", Data[0]);
-        
-        //set the characteristic to that char & start service
-        pCharacteristic->setValue(num);
-        pCharacteristic->notify();
     }
 };
  
@@ -123,6 +122,13 @@ void createCharacteristics() {
     fsmDescriptor.setValue("FSM State");
     fsmCharacteristic->addDescriptor(&fsmDescriptor);
     fsmCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+
+    // Operation State
+    operationCharacteristic = cueService->createCharacteristic(OP_UUID,
+                                                     BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE_NR);
+    operationDescriptor.setValue("Operating Mode");
+    operationCharacteristic->addDescriptor(&operationDescriptor);
+    operationCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 }
 
 // * Set characteristic value and notify client

@@ -1,5 +1,3 @@
-#include <string>
-
 #define UP_PIN 32
 #define DOWN_PIN 16
 #define LEFT_PIN 33
@@ -18,7 +16,7 @@
 
 struct Button{
     const uint8_t pin_;
-    const String name_;
+    const char * name_;
     bool pressed_;
     uint64_t button_time_;
     uint64_t last_button_time_;
