@@ -118,8 +118,18 @@ void DrawBallTarget(int poi_valuey, int poi_valuex) {
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
-  display.println("Target:"); 
-  display.drawTriangle(poi_valuex, poi_valuey, (poi_valuex + 5), (poi_valuey + 10), (poi_valuex + 10), poi_valuey, SSD1306_WHITE);
+  display.println((state == 4) ? "Actual:" : "Target:"); 
+//  Serial.print("State is ");
+//  Serial.println(state);
+//  Serial.println((state == 4) ? "Actual:" : "Target:"); 
+  if(poi_valuex < 67){
+     display.drawTriangle(poi_valuex, poi_valuey, (poi_valuex + 5), (poi_valuey + 10), (poi_valuex + 10), poi_valuey, SSD1306_WHITE);
+  }
+  else {
+      display.setCursor(50, 27);
+      display.println("?");
+  }
+  
 }
 //***************************************************************************//
 //Power Meter, fills based on given power 1 - 5
@@ -380,8 +390,8 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
               //Serial.print("Intermediate poi_x value: ");
               //Serial.println(poi_value_x);
             } 
-            //Serial.print("poi_x value updated to ");
-            //Serial.println(poi_value_x);
+            Serial.print("poi_x value updated to ");
+            Serial.println(poi_value_x);
         }
         else if(uuid.equals(*poi_y_uuid_obj)) {
             uint8_t* pdata = rx_char->getData();
@@ -393,8 +403,8 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
               //Serial.print("Intermediate poi_y value: ");
               //Serial.println(poi_value_y);
             } 
-            //Serial.print("poi_y value updated to ");
-            //Serial.println(poi_value_y);
+            Serial.print("poi_y value updated to ");
+            Serial.println(poi_value_y);
         }
         else if(uuid.equals(*audio_uuid_obj)) {
             //coordinate with Luke
@@ -550,6 +560,7 @@ void setup() {
     if(!SD.begin(SD_CS))
     {
       Serial.println("Error talking to SD card!");
+      //delay(800);
       while(true);  // end program
     }
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
@@ -628,9 +639,11 @@ void setup() {
          //Change to JPEG capture mode and initialize the OV5642 module
          myCAM.set_format(JPEG);
          myCAM.InitCAM();
-         myCAM.OV2640_set_JPEG_size(OV2640_352x288); // OV2640_640x480
+         myCAM.OV2640_set_JPEG_size(OV2640_640x480); //  OV2640_352x288 OV2640_1600x1200
          myCAM.OV2640_set_Light_Mode(Office);
-         myCAM.OV2640_set_Color_Saturation(Saturation2);
+         myCAM.OV2640_set_Color_Saturation(Saturation1);
+         myCAM.OV2640_set_Brightness(Brightness_2);
+         myCAM.OV2640_set_Special_effects(Normal);
          delay(1000);
          myCAM.clear_fifo_flag();
          
