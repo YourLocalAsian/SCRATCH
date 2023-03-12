@@ -83,3 +83,8 @@ class ButtonInput(Enum):
     A = 4
     B = 5
     NONE = 6
+
+# Blind Shot Mode Variables
+angle_threshold = 3.0
+desired_distance = 1.0
+distance_threshold = 1.0

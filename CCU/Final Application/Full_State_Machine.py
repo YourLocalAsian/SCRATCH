@@ -26,7 +26,7 @@ def set_impaired(): # TODO
     print("Asking if user is impaired")
     # play audio asking for impairness
     # wait for button notification
-    user_impaired = False # TODO: remove with actual setting
+    user_impaired = True # TODO: remove with actual setting
     # play audio confirming choice
     time.sleep(1)
     
@@ -46,7 +46,7 @@ def set_operating_mode(): # TODO
         elif BUTTON_CHAR_STICK_UUID == ButtonInput.B: # Press B = Training Mode
             operation_mode = OperatingMode.TRAINING
 
-    operation_mode = OperatingMode.TRAINING # TODO: Force mode selection
+    operation_mode = OperatingMode.GAME # TODO: Force mode selection
     print("Forced mode:", operation_mode)
 
 def on_disconnect(): # TODO
@@ -75,12 +75,12 @@ def game_mode(angle, strength): # Called continously until shot is completed
             if debug_print:
                 print("Calling blind user shot attempt")
                 time.sleep(1)
-            shot_attempt_bld()
+            shot_attempt_bld(angle, strength)
         else:
             if debug_print:
                 print("Calling standard user shot attempt")
                 time.sleep(1)
-            shot_attempt_std()
+            shot_attempt_std(0, 0, strength)
     
     else: # strength is negative when starting a game
         # Ensure connection to VISION has been established
@@ -124,7 +124,7 @@ def training_mode(shot_x, shot_y, strength): # TODO
         if debug_print:
             print("Calling standard user shot attempt")
             time.sleep(1)
-        shot_attempt_std()
+        shot_attempt_std(shot_x, shot_y, strength)
 
         # Ask user if they want to continue
         continue_playing = False # ! IDK how we want to do this in practice
@@ -156,14 +156,92 @@ def training_mode(shot_x, shot_y, strength): # TODO
     return
 
 # Shot Attempt Functions
-def shot_attempt_std():
+def shot_attempt_std(desired_x, desired_y, desired_strength):
     print("\tDoing standard shot stuff")
     time.sleep(5)
     
     return
 
-def shot_attempt_bld():
-    print("\tDoing blind shot stuff")
+def shot_attempt_bld(desired_angle, desired_strength):
+    global angle_threshold, distance_threshold, desired_distance
+    debug_print = True
+
+    glove_angle = 0
+    glove_dist = 0
+    cue_pitch = 0
+    
+    if debug_print:
+        print("\tDoing blind shot stuff")
+
+    # Check glove angle
+    if debug_print:
+        print("\tChecking glove angle")
+        time.sleep(1)
+
+    while abs(glove_angle - desired_angle) > angle_threshold:
+        if (glove_angle - desired_angle) > 0:
+            if debug_print:
+                print("\t\tTurn hand left")
+                time.sleep(1)
+            # Send audio cue
+        else:
+            if debug_print:
+                print("\t\tTurn hand right")
+                time.sleep(1)
+            # Send audio cue
+
+        # Update glove angle
+    
+    if debug_print:
+        print("\tGlove angle set")
+
+    # Check glove distance
+    if debug_print:
+        print("\tChecking glove distance")
+        time.sleep(1)
+
+    while abs(glove_dist - desired_distance) > distance_threshold:
+        if (glove_dist - desired_distance) > distance_threshold:
+            if debug_print:
+                print("\t\tMove hand forward")
+                time.sleep(1)
+            # Send audio cue
+        else:
+            if debug_print:
+                print("\t\tMove hand backward")
+                time.sleep(1)
+            # Send audio cue
+        
+        # Update glove distance
+   
+    if debug_print:
+        print("\tGlove distance set")
+        time.sleep(1)
+
+    # Check cue stick pitch
+    if debug_print:
+        print("\tChecking cue stick pitch")
+        time.sleep(1)
+
+    while abs(glove_angle) > angle_threshold:
+        if glove_angle > 0:
+            if debug_print:
+                print("\t\Tilt stick down")
+                time.sleep(1)
+            # Send audio cue
+        else:
+            if debug_print:
+                print("\t\tTilt stick up")
+                time.sleep(1)
+            # Send audio cue
+    
+    if debug_print:
+        print("\tCue stick level")
+        time.sleep(1)
+
+    # Send audio cue to HUD "Take shot"
+    # Wait for "Shot Taken" from cue stick
+
     time.sleep(5)
     
     return
