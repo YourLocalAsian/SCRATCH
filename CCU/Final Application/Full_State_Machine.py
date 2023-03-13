@@ -4,6 +4,9 @@ import time
 import sys
 import random
 from Settings import *
+from Glove_Receiver import *
+from HUD_Receiver import *
+from Stick_Receiver import *
 
 # Setup Functions
 def scan_for_devices(): # TODO
