@@ -249,48 +249,6 @@ def shot_attempt_bld(desired_angle, desired_strength):
     
     return
 
-# HUD Interactions
-def connect_to_hud(): # TODO
-    return
-
-def receive_image(): # TODO
-    return
-
-def computer_vision(): # TODO
-    return
-
-# Cue Stick
-def connect_to_stick(): # TODO
-    return
-
-def on_new_acc_stick(): # TODO
-    return
-
-def on_new_roll_stick(): # TODO
-    return
-
-def on_new_pitch_stick(): # TODO
-    return
-
-def on_new_yaw_stick(): # TODO
-    return
-
-def on_new_button_stick():
-    return
-
-def on_new_fms():
-    return
-
-# Glove
-def connect_to_glove():
-    return
-
-def on_new_dist_glove():
-    return
-
-def on_new_yaw_glove():
-    return
-
 if __name__ == '__main__':
     # Connect to all peripherals
     print("Connecting to all peripherals")
