@@ -296,7 +296,7 @@ def comp_vision(image_path, final_image_name):
 def HUD_on_disconnect(self):
     #global bt_thread
     """Disconnect from the remote device."""
-    print('Disconnected!')  
+    print('HUD Disconnected!')  
     print('Stopping notify')
     for character in HUD_monitor._characteristics:
         character.stop_notify()  
@@ -335,7 +335,7 @@ def HUD_on_disconnect(self):
 def stick_on_disconnect(self):
     global bt_thread
     """Disconnect from the remote device."""
-    print('Disconnected!')  
+    print('STICK Disconnected!')  
     print('Stopping notify')
     for character in stick_monitor._characteristics:
         character.stop_notify()  
@@ -374,7 +374,7 @@ def stick_on_disconnect(self):
 def glove_on_disconnect(self):
     #global bt_thread
     """Disconnect from the remote device."""
-    print('Disconnected!')  
+    print('GLOVE Disconnected!')  
     print('Stopping notify')
     for character in monitor._characteristics:
         character.stop_notify()  
@@ -515,7 +515,7 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
         with open(f"HUD_receiver_test_{image_counter}.jpeg", "wb") as fp:
             for integer in received_integers:
                 fp.write(bytes([integer]))
-        print("Done!")
+        print("IMAGE Done!")
         comp_vision(f"HUD_receiver_test_{image_counter}.jpeg", f"HUD_receiver_test_contours_{image_counter}.jpeg")
         received_integers = []
         image_counter +=1
@@ -539,10 +539,9 @@ def glove_on_new_yaw(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 180): #ASK LUKE
         number -= 4294967296
-    print(f"Received the yaw value {number}.")
-    print(f"Received the yaw value {number}. ")
+    print(f"GLOVE Received the yaw value {number}. ")
 
-def glove_on_new_button(iface, changed_props, invalidated_props):
+def glove_on_new_distance(iface, changed_props, invalidated_props):
     """
     Callback used to receive notification events from the device.
     :param iface: dbus advanced data
@@ -556,7 +555,7 @@ def glove_on_new_button(iface, changed_props, invalidated_props):
 
     number = int(value[1] )#struct.unpack(fmt, bytes(payload[0:struct.calcsize(fmt)])) REMOVED MENA
     number = (number <<8) + int(value[0])
-    print(f"Received the button value {number}.")
+    print(f"GLOVE Received the distance value {number}.")
 
 
 def stick_on_new_acc(iface, changed_props, invalidated_props):
@@ -579,7 +578,7 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the acc value {number}.")
+    print(f"STICK Received the acc value {number}.")
 
 def stick_on_new_roll(iface, changed_props, invalidated_props):
     """
@@ -603,7 +602,7 @@ def stick_on_new_roll(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the roll value {int(number)}.")
+    print(f"STICK Received the roll value {int(number)}.")
 
 def stick_on_new_pitch(iface, changed_props, invalidated_props):
     """
@@ -624,7 +623,7 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the pitch value {number}.")
+    print(f"STICK Received the pitch value {number}.")
 
 def stick_on_new_yaw(iface, changed_props, invalidated_props):
     """
@@ -645,7 +644,7 @@ def stick_on_new_yaw(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the yaw value {number}.")
+    print(f"STICK Received the yaw value {number}.")
 
 def stick_on_new_button(iface, changed_props, invalidated_props):
     """
@@ -664,7 +663,7 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     number = (number <<8) + int(value[1])
     number = (number <<8) + int(value[0])
     number = int(number)
-    print(f"Received the button value {number}.")
+    print(f"STICK Received the button value {number}.")
 
 def stick_on_new_fms(iface, changed_props, invalidated_props):
     """
@@ -683,9 +682,9 @@ def stick_on_new_fms(iface, changed_props, invalidated_props):
     number = (number <<8) + int(value[1])
     number = (number <<8) + int(value[0])
     number = int(number)
-    print(f"Received the fms value {number}. Setting state to 5")
+    print(f"STICK Received the fms value {number}. Setting state to 5")
     x = 5
-    fms_char.write_value(x.to_bytes(1,byteorder='big', signed=False))
+    stick_fms_char.write_value(x.to_bytes(1,byteorder='big', signed=False))
 
 def connect_and_run(dev=None, device_address=None, name = 'stick'):
     """
@@ -837,14 +836,14 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
         print('Connection successful!')
 
         # Enable heart rate notifications
-        glove_yaw_char.glove_start_notify()
-        glove_button_char.glove_start_notify()
+        glove_yaw_char.start_notify()
+        glove_distance_char.start_notify()
 
         global glove_notification_cb_set
         if not glove_notification_cb_set:
             print('Setting callback for notifications for glove')
             glove_yaw_char.add_characteristic_cb(glove_on_new_yaw)
-            glove_button_char.add_characteristic_cb(glove_on_new_button)
+            glove_distance_char.add_characteristic_cb(glove_on_new_distance)
             glove_notification_cb_set = True
     else:
         print('Invalid name in connect_and_run_function')
@@ -866,7 +865,7 @@ if __name__ == '__main__':
     for dev in devices:
         if dev:
             print("stick Found!")
-            bt_thread = threading.Thread(target=connect_and_run, args=[dev, 'stick'])
+            bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'stick'])
             bt_thread.start()
             print( f"The thread is {bt_thread}")
             break
@@ -875,6 +874,59 @@ if __name__ == '__main__':
         while HUD_connected and stick_connected and glove_connected:
             print('All connected, doing stuff')
             time.sleep(3)
+            mode = 2
+            HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
+
+            time.sleep(1) #wait to simulate game mode selection SHOULD I MAKE THIS LONGER?
+            mode = 3
+            print("game mode")
+            HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
+            time.sleep(4)
+
+            
+            #init
+            state = 0
+            print('Setting state to 0')
+            HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+        
+
+            #send random power and poi numbers
+            #target
+            pow = random.randint(0,5)
+            poi_x = random.randint(-15, 15)
+            poi_y = random.randint(-15,15)
+            print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+            HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+            HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
+            HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
+            time.sleep(3)
+            
+            #cycle through states
+            state = 1
+            print('Setting state to 1')
+            HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            time.sleep(1)
+            state = 2
+            print('Setting state to 2')
+            HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            time.sleep(1)
+            state = 3
+            print('Setting state to 3')
+            HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            time.sleep(12) #should receive image
+            
+            #post shot feedback
+            state = 4
+            print('Setting state to 4')
+            HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #time.sleep(3)
+            pow = random.randint(0,5)
+            poi_x = int(actual_x)
+            poi_y = int(actual_y)
+            print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+            HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+            HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
+            HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
         if not HUD_connected:
             print('HUD not connected')
         if not stick_connected:
