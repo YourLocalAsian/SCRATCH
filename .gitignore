@@ -33,3 +33,7 @@
 
 # Folders
 .vscode/
+
+# Videos
+*.mp4
+*.mov
