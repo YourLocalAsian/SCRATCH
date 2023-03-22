@@ -1,5 +1,14 @@
 from Settings import *
 
+# Variables for holding received values
+stick_received_acc = 0
+stick_received_roll = 0
+stick_received_pitch = 0
+stick_received_yaw = 0
+stick_received_button = 0
+stick_received_fsm = 0
+
+# Callback functions
 def stick_on_new_acc(iface, changed_props, invalidated_props):
     """
     Callback used to receive notification events from the device.
@@ -127,3 +136,38 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
     print(f"Received the fsm value {number}. Setting state to 5")
     x = 5
     stick_fsm_char.write_value(x.to_bytes(1,byteorder='big', signed=False))
+
+# Checking functions
+def check_stick_pitch():
+    global ANGLE_THRESHOLD, HUD_audio_char
+    global new_stick_pitch_received, stick_received_pitch
+    pitch = 180
+    debug_print = True
+
+    new_stick_pitch_received = False # initialize flag
+
+    while abs(pitch) > ANGLE_THRESHOLD:
+        while (new_stick_pitch_received == False): # block until new stick pitch received
+            pass
+        
+        pitch = stick_received_pitch
+        
+        if pitch > 0:
+            if debug_print:
+                print("\t\Tilt stick down")
+                time.sleep(1)
+            # Send audio cue
+            prompt = AIM_LOWER
+            HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        else:
+            if debug_print:
+                print("\t\tTilt stick up")
+                time.sleep(1)
+            # Send audio cue
+            prompt = AIM_HIGHER
+            HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+
+        time.sleep(1)
+        new_stick_pitch_received = False # clear flag before proceeding
+
+    return

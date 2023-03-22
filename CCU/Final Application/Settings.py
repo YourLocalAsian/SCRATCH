@@ -94,6 +94,31 @@ class ButtonInput(Enum):
     NONE = 6
 
 # Blind Shot Mode Variables
-angle_threshold = 3.0
-desired_distance = 1.0
-distance_threshold = 1.0
+ANGLE_THRESHOLD = 3.0
+DESIRED_DISTANCE = 1.0
+DISTANCE_THRESHOLD = 1.0
+
+# Prompt Numbers
+MOVE_FOR_CALIBRATION = 0
+ZERO_OUT_GLOVE = 0
+GLOVE_ZEROED_OUT = 0
+TURN_LEFT = 0
+TURN_RIGHT = 0
+MOVE_FORWARD = 0
+MOVE_BACKWARD = 0
+AIM_HIGHER = 0
+AIM_LOWER = 0
+CHECKING_GLOVE_ANGLE = 0
+GLOVE_ANGLE_CORRECT = 0
+CHECKING_GLOVE_DISTANCE = 0
+GLOVE_DISTANCE_CORRECT = 0
+CHECKING_STICK_PITCH = 0
+STICK_PITCH_CORRECT = 0
+TAKE_SHOT = 0
+NICE_SHOT = 0
+
+
+# Blocking Flags
+new_glove_angle_received = False
+new_glove_dist_received = False
+new_stick_pitch_received = False

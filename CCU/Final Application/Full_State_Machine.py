@@ -166,86 +166,75 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     return
 
 def shot_attempt_bld(desired_angle, desired_strength):
-    global angle_threshold, distance_threshold, desired_distance
+    global HUD_audio_char
     debug_print = True
-
-    glove_angle = 0
-    glove_dist = 0
-    cue_pitch = 0
     
     if debug_print:
         print("\tDoing blind shot stuff")
 
-    # Check glove angle
+    # Check if glove has been zeroed out
+    prompt = MOVE_FOR_CALIBRATION
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    
+    check_glove_zeroed()
+    
+    prompt = GLOVE_ZEROED_OUT
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+
+    # Check glove angle for correctness
     if debug_print:
         print("\tChecking glove angle")
         time.sleep(1)
-
-    while abs(glove_angle - desired_angle) > angle_threshold:
-        if (glove_angle - desired_angle) > 0:
-            if debug_print:
-                print("\t\tTurn hand left")
-                time.sleep(1)
-            # Send audio cue
-        else:
-            if debug_print:
-                print("\t\tTurn hand right")
-                time.sleep(1)
-            # Send audio cue
-
-        # Update glove angle
+    prompt = CHECKING_GLOVE_ANGLE
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    
+    check_glove_angle(desired_angle) # Call function in Glove_Receiver.py
     
     if debug_print:
-        print("\tGlove angle set")
+        print("\tGlove angle correct")
+    prompt = GLOVE_ANGLE_CORRECT
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
     # Check glove distance
     if debug_print:
         print("\tChecking glove distance")
         time.sleep(1)
-
-    while abs(glove_dist - desired_distance) > distance_threshold:
-        if (glove_dist - desired_distance) > distance_threshold:
-            if debug_print:
-                print("\t\tMove hand forward")
-                time.sleep(1)
-            # Send audio cue
-        else:
-            if debug_print:
-                print("\t\tMove hand backward")
-                time.sleep(1)
-            # Send audio cue
-        
-        # Update glove distance
-   
+    prompt = CHECKING_GLOVE_DISTANCE
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    
+    check_glove_distance()
+    
     if debug_print:
-        print("\tGlove distance set")
+        print("\tGlove distance correct")
         time.sleep(1)
+    prompt = GLOVE_DISTANCE_CORRECT
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
     # Check cue stick pitch
     if debug_print:
         print("\tChecking cue stick pitch")
         time.sleep(1)
+    prompt = CHECKING_STICK_PITCH
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
-    while abs(glove_angle) > angle_threshold:
-        if glove_angle > 0:
-            if debug_print:
-                print("\t\Tilt stick down")
-                time.sleep(1)
-            # Send audio cue
-        else:
-            if debug_print:
-                print("\t\tTilt stick up")
-                time.sleep(1)
-            # Send audio cue
+    check_stick_pitch()
     
     if debug_print:
         print("\tCue stick level")
         time.sleep(1)
+    prompt = STICK_PITCH_CORRECT
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
     # Send audio cue to HUD "Take shot"
+    prompt = TAKE_SHOT
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    
     # Wait for "Shot Taken" from cue stick
+    while (stick_received_fsm != 4):
+        pass
 
-    time.sleep(5)
+    prompt = NICE_SHOT
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
     
     return
 
