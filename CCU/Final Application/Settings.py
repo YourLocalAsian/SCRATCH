@@ -46,6 +46,12 @@ stick_connected = False
 glove_connected = False
 VISION_connected = False
 
+#central device
+HUD_monitor = None 
+glove_monitor = None
+stick_monitor = None 
+bt_thread = None
+
 # HUD Characteristics & Variables
 HUD_mode_char = None
 HUD_power_char = None

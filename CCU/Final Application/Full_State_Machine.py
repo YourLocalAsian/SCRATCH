@@ -7,22 +7,9 @@ from Settings import *
 from Glove_Receiver import *
 from HUD_Receiver import *
 from Stick_Receiver import *
+from BLE_Functions import *
 
-# Setup Functions
-def scan_for_devices(): # TODO
-    print("Searching for HUD")
-    time.sleep(0.5)
-    print("HUD found")
-    time.sleep(0.5)
-    print("Searching for Stick")
-    time.sleep(0.5)
-    print("Stick found")
-    time.sleep(0.5)
-    print("Searching for Glove")
-    time.sleep(0.5)
-    print("Glove found")
-    return
-
+# User Set Up Functions
 def set_impaired():
     global user_impaired, HUD_audio_char, new_stick_button_received
 
@@ -75,9 +62,6 @@ def set_operating_mode():
 
     operation_mode = OperatingMode.TRAINING
 
-    return
-
-def on_disconnect(): # TODO
     return
 
 # Game Mode Functions
@@ -264,18 +248,14 @@ def shot_attempt_bld(desired_angle, desired_strength):
     return
 
 if __name__ == '__main__':
-    # Connect to all peripherals
-    print("Connecting to all peripherals")
-    scan_for_devices()
+    connect_to_everything() # Connect to all peripherals
     print(f"Successfully connected\n")
 
     # Determine blind vs not blind
-    print("Calling set_impaired()")
     set_impaired()
     print(f"Impairedness set:", user_impaired, "\n")
 
     # Determine Game Mode VS Training Mode
-    print("Calling set_operating_mode()")
     set_operating_mode()
     print(f"Operating mode set:", operation_mode, "\n")
 

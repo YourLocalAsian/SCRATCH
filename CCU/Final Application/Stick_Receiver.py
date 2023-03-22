@@ -180,3 +180,42 @@ def check_stick_pitch():
         new_stick_pitch_received = False # clear flag before proceeding
 
     return
+
+def stick_on_disconnect(self):
+    global bt_thread
+    """Disconnect from the remote device."""
+    print('STICK Disconnected!')  
+    print('Stopping notify')
+    for character in stick_monitor._characteristics:
+        character.stop_notify()  
+    print('Disconnecting...')  
+    stick_monitor.disconnect()   
+    stick_monitor.quit() #bt_thread should exit after this
+    
+      
+    #flag setting
+    global stick_connected
+    stick_connected = False
+    print( f"The thread is {bt_thread}")
+
+    #while (bt_thread.is_alive()):
+    #    continue
+
+    #Attempt to scan and reconnect
+    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
+    time.sleep(5)
+    for dongle in adapter.Adapter.available():
+        devices = central.Central.available(dongle.address)
+        while not devices:
+            print("Cannot find server. Sleeping for 2s...")
+            time.sleep(2)
+            devices = scan_for_devices(name='stick')
+            print('Found our device!')
+        for dev in devices:
+            if STICK_SERVER_SRV.lower() in dev.uuids:
+                print('Found our device!')
+                bt_thread = threading.Thread(target=connect_and_run, args=[dev, 'stick'])
+                bt_thread.start()
+                print(f"Just started thread {bt_thread}")
+                break
+        break
