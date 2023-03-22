@@ -99,6 +99,13 @@ DESIRED_DISTANCE = 1.0
 DISTANCE_THRESHOLD = 1.0
 
 # Prompt Numbers
+ASK_IMPAIRED = 0
+BLIND_SELECTED = 0
+NONBLIND_SELECTED = 0
+SELECT_OP = 0
+ENTERING_GM = 0
+ENTERING_TM = 0
+
 MOVE_FOR_CALIBRATION = 0
 ZERO_OUT_GLOVE = 0
 GLOVE_ZEROED_OUT = 0
@@ -117,8 +124,8 @@ STICK_PITCH_CORRECT = 0
 TAKE_SHOT = 0
 NICE_SHOT = 0
 
-
 # Blocking Flags
 new_glove_angle_received = False
 new_glove_dist_received = False
 new_stick_pitch_received = False
+new_stick_button_received = False

@@ -23,34 +23,59 @@ def scan_for_devices(): # TODO
     print("Glove found")
     return
 
-def set_impaired(): # TODO
-    global user_impaired
+def set_impaired():
+    global user_impaired, HUD_audio_char, new_stick_button_received
 
     print("Asking if user is impaired")
-    # play audio asking for impairness
-    # wait for button notification
-    user_impaired = True # TODO: remove with actual setting
-    # play audio confirming choice
-    time.sleep(1)
     
+    # play audio asking for impairness
+    prompt = ASK_IMPAIRED
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+
+    # wait for button notification
+    x = 0
+    for x in range(5):
+        if new_stick_button_received:
+            user_impaired = True
+            new_stick_button_received = False
+            break
+        time.sleep(1)
+
+    # play audio confirming choice
+    if user_impaired:
+        prompt = BLIND_SELECTED
+    else:
+        prompt = NONBLIND_SELECTED
+    HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+
     return
 
-def set_operating_mode(): # TODO
-    global operation_mode
+def set_operating_mode():
+    global operation_mode, HUD_audio_char, new_stick_button_received
 
     if user_impaired == True: # only option when blind mode is game mode
         operation_mode = OperatingMode.GAME
-        print("User impaired - defaulting to Game Mode")
+        prompt = ENTERING_GM
+        HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        return
+    
     else:
         # play audio cue for selection
-        # get user response
-        if BUTTON_CHAR_STICK_UUID == ButtonInput.A: # Press A = Game Mode # TODO: change this to value of characteristic
-            operation_mode = OperatingMode.GAME
-        elif BUTTON_CHAR_STICK_UUID == ButtonInput.B: # Press B = Training Mode
-            operation_mode = OperatingMode.TRAINING
+        prompt = SELECT_OP
+        HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
-    operation_mode = OperatingMode.GAME # TODO: Force mode selection
-    print("Forced mode:", operation_mode)
+        # wait for button notification
+        x = 0
+        for x in range(5):
+            if new_stick_button_received:
+                operation_mode = OperatingMode.GAME
+                new_stick_button_received = False
+                return
+            time.sleep(1)
+
+    operation_mode = OperatingMode.TRAINING
+
+    return
 
 def on_disconnect(): # TODO
     return

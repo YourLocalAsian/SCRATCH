@@ -104,6 +104,8 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
+    global stick_received_button, new_stick_button_received
+    
     value = changed_props.get('Value', None)
     if not value:
         print("\'Value\' not found!")
@@ -114,7 +116,14 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     number = (number << 8) + int(value[1])
     number = (number << 8) + int(value[0])
     number = int(number)
-    print(f"Received the button value {number}.")
+    
+    # Store distance value
+    stick_received_button = number
+    print(f"Received the button value {stick_received_button}.")
+
+    # Set flag that button received
+    new_stick_button_received = True
+
 
 def stick_on_new_fsm(iface, changed_props, invalidated_props):
     """
