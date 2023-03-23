@@ -12,7 +12,6 @@
 #define YAW_UUID "1d710f6e-929a-11ed-a1eb-0242ac120002"
 #define BUTTON_UUID "1d7110c2-929a-11ed-a1eb-0242ac120002"
 #define FSM_UUID "1d7111da-929a-11ed-a1eb-0242ac120002"
-#define OP_UUID "ada3120a-bf6b-11ed-afa1-0242ac120002"
 
 bool deviceConnected = false;
 
@@ -122,13 +121,6 @@ void createCharacteristics() {
     fsmDescriptor.setValue("FSM State");
     fsmCharacteristic->addDescriptor(&fsmDescriptor);
     fsmCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
-
-    // Operation State
-    operationCharacteristic = cueService->createCharacteristic(OP_UUID,
-                                                     BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE_NR);
-    operationDescriptor.setValue("Operating Mode");
-    operationCharacteristic->addDescriptor(&operationDescriptor);
-    operationCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 }
 
 // * Set characteristic value and notify client

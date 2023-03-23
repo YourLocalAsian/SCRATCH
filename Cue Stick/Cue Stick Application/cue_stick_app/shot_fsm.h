@@ -37,6 +37,7 @@ double accelerationBase;
 double globalMinima = 0;
 bool shotAttempt;
 uint8_t fsmState = 0;
+bool userReady;
 
 // Operation mode variables
 bool speedCheckMode;
@@ -59,9 +60,8 @@ bool printYaw;
 const int mapArray[7] = {-1, -3, -5, -7, -9, -11, -13};
 String ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
                             "FAST", "POWER", "BREAK", "POWER_BREAK"};
-enum fsmStates      {NOT_READY, READY, WAITING, TAKING_SHOT, SHOT_TAKEN, PAUSED};
-String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING SHOT", "SHOT TAKEN", "PAUSED", 
-                     "STANDBY MODE", "SHOT MODE", "DEBUG MODE", "KONAMI CODE"};
+enum fsmStates      {NOT_READY, READY, WAITING, TAKING_SHOT, SHOT_TAKEN, PAUSED, SET_NON, SET_BLD};
+String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING SHOT", "SHOT TAKEN", "PAUSED"};
 
 // Supplementary functions
 void checkStationary(double avgAcceleration);
@@ -116,7 +116,8 @@ void setupHardware() {
     zeroOut(); // Get baseline orientation of stick
     configureOperation();
     configurePrint();
-    floodStationary(-100);   
+    floodStationary(-100);
+    userReady = false;  
 }
 
 // Main functionality of simulation
@@ -129,20 +130,6 @@ void fsmLoop() {
     }
 
     digitalWrite(LASER, HIGH);
-    
-    // * Check if loop is paused
-    while (!isRunning) {
-        Serial.println("Program is paused");
-        
-        if (checkButton(buttonA)) {
-            isRunning = true;
-            fsmState = 0;
-            delay(3000); // Add additional 3s wait
-            break;
-        }
-        
-        delay(2000);
-    }
     
     //* Get accleration and orientation vectors
     imu::Vector<3> accelerationVector = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
@@ -176,13 +163,11 @@ void fsmLoop() {
     if (zeroedOut) { // If zeroedOut
         avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
         checkStationary(avgAcceleration); // Check if stick is stationary
-        double pitch = 180/M_PI * (double) eulerVector.y() - calibrationData[2];
-        isLevel = (abs(pitch) < 5.0); // cue stick is considered level is abs of pitch is less than 5 degrees
 
         // FSM
         if (!isStationary && !shotReady) { // State 0: Not stationary, not ready to take shot
             fsmState = 0;
-        } else if (isStationary && isLevel && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
+        } else if (isStationary && userReady && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
             accelerationBase = avgAcceleration;
             floodStationary(avgAcceleration);
             globalMinima = avgAcceleration;
@@ -202,10 +187,9 @@ void fsmLoop() {
             fsmState = 4;
         }
 
-        // Button press overrides FMS
+        // User button press indicates they are ready to shoot
         if (checkButton(buttonA)) {
-            isRunning = false;
-            fsmState = 5;
+            userReady = true;
         }
         
     }
@@ -221,8 +205,25 @@ void fsmLoop() {
         mapped = mapAcceleration(minima);
         if (printMappedValue) {
             Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
-            if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
+            //if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
         }
+
+        uint8_t continueShooting = 0;
+        while (continueShooting == 0) {
+            if (checkButton(buttonA)) {
+                Serial.println("Y");
+                updateCharacteristic(buttonCharacteristic, A);
+                speedCheckMode = true;
+                valuesConfigured = 8;
+            }
+            if (checkButton(buttonB)) {
+                Serial.println("N");
+                updateCharacteristic(buttonCharacteristic, B);
+                speedCheckMode = false;
+                valuesConfigured++;
+            }
+        }
+
         shotAttempt = false;
     }
 
@@ -288,11 +289,13 @@ void blindFsmLoop() {
     if (zeroedOut) { // If zeroedOut
         avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
         checkStationary(avgAcceleration); // Check if stick is stationary
+        double pitch = 180/M_PI * (double) eulerVector.y() - calibrationData[2];
+        isLevel = (abs(pitch) < 5.0); // cue stick is considered level is abs of pitch is less than 5 degrees
 
         // FSM
         if (!isStationary && !shotReady) { // State 0: Not stationary, not ready to take shot
             fsmState = 0;
-        } else if (isStationary && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
+        } else if (isStationary && isLevel && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
             accelerationBase = avgAcceleration;
             floodStationary(avgAcceleration);
             globalMinima = avgAcceleration;

@@ -7,7 +7,7 @@ int buttonHistoryArray[10];
 int buttonHistoryIndex;
 bool konamiCodeInput;
 uint8_t operationMode;
-enum opStates   {STANDBY_MODE, SHOT_MODE, BLIND_MODE, DEBUG_MODE, KONAMI_CODE};
+enum opStates   {SHOT_MODE, BLIND_MODE, DEBUG_MODE, KONAMI_CODE};
 
 
 // Main Functions
@@ -30,17 +30,13 @@ void setup() {
 void loop() {
     // Check if CCU updated characteristics
     fsmState = *(fsmCharacteristic->getData());
-    operationMode = *(operationCharacteristic->getData());
+
+    if (fsmState == SET_NON)
+        operationMode = SHOT_MODE;
+    else if (fsmState == SET_BLD)
+        operationMode = BLIND_MODE;
     
     switch(operationMode) {
-        case STANDBY_MODE: {
-            int numOfButtonsPressed = readAllButtons(); // wait for button input
-            // * Printing happens in readAllButtons()
-            storeButtonHistory(); // store button inputs for checking for input codes & notify is pressed
-            checkForKonami();
-            break;
-        } 
-        
         case SHOT_MODE: {
             fsmLoop();
             break;
@@ -51,12 +47,6 @@ void loop() {
             break;
         }
         
-        case KONAMI_CODE: {
-            Serial.println("You typed the Konami code. You get 30 lives");
-            fsmState = STANDBY_MODE;
-            break;
-        }
-
         case DEBUG_MODE: {
             Serial.println("TBD");
             break;
@@ -68,52 +58,4 @@ void loop() {
             break;
         }
     }   
-}
-
-void storeButtonHistory() {
-    for (int index = 0; index < 6; index++) { // Iterate through pressedArray 
-        if (pressedArray[index]) { // if button is pressed
-            buttonHistoryArray[buttonHistoryIndex] = index; // Store button at current buttonHistoryIndex in buttonHistoryArray
-            buttonHistoryIndex = (buttonHistoryIndex + 1) % 10; // buttonHistoryIndex index
-            updateCharacteristic(buttonCharacteristic, index); // notify CCU of button press
-        }
-    }
-}
-
-void checkForKonami() { // check for Konami code in reverse
-    bool possibleCode = true;
-    int tempIndex = (buttonHistoryIndex + 1) % 10;
-    
-    if (buttonHistoryArray[tempIndex] == UP) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == UP && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == DOWN && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == DOWN && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == LEFT && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == RIGHT && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == LEFT && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == RIGHT && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == B && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    if (buttonHistoryArray[tempIndex] == A && possibleCode) {
-        tempIndex = (tempIndex + 1) % 10;
-    }
-    
-    if (possibleCode) fsmState = KONAMI_CODE;
 }
