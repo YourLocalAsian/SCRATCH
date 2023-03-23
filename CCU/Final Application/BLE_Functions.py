@@ -1,4 +1,7 @@
 from Settings import *
+from HUD_Receiver import *
+from Glove_Receiver import *
+from Stick_Receiver import *
 
 # Connection Functions
 def scan_for_devices(
@@ -103,7 +106,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
         global stick_pitch_char
         global stick_yaw_char
         global stick_button_char
-        global stick_fms_char
+        global stick_fsm_char
 
         global stick_monitor
         if stick_monitor is None: #ADDED this IF
@@ -119,7 +122,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             stick_acc_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_ACC_CHAR_UUID)
             stick_roll_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_ROLL_CHAR_UUID)
             stick_pitch_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_PITCH_CHAR_UUID)
-            stick_fms_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_FMS_CHAR_UUID)
+            stick_fsm_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_FSM_CHAR_UUID)
             stick_yaw_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_YAW_CHAR_UUID)
             stick_button_char = stick_monitor.add_characteristic(STICK_SERVER_SRV, STICK_BUTTON_CHAR_UUID)
 
@@ -139,7 +142,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
         stick_acc_char.start_notify()
         stick_yaw_char.start_notify()
         stick_button_char.start_notify()
-        stick_fms_char.start_notify()
+        stick_fsm_char.start_notify()
 
         global stick_notification_cb_set
         if not stick_notification_cb_set:
@@ -149,7 +152,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             stick_pitch_char.add_characteristic_cb(stick_on_new_pitch)
             stick_yaw_char.add_characteristic_cb(stick_on_new_yaw)
             stick_button_char.add_characteristic_cb(stick_on_new_button)
-            stick_fms_char.add_characteristic_cb(stick_on_new_fms)
+            stick_fsm_char.add_characteristic_cb(stick_on_new_fsm)
             stick_notification_cb_set = True
         
         try:

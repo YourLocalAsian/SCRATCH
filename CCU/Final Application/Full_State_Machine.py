@@ -46,6 +46,8 @@ def set_operating_mode():
         operation_mode = OperatingMode.GAME
         prompt = ENTERING_GM
         HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        mode = 6
+        stick_fsm_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
         return
     
     else:
@@ -63,6 +65,8 @@ def set_operating_mode():
             time.sleep(1)
 
     operation_mode = OperatingMode.TRAINING
+    mode = 7
+    stick_fsm_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
 
     return
 

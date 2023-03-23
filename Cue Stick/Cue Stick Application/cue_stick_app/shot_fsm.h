@@ -213,14 +213,12 @@ void fsmLoop() {
             if (checkButton(buttonA)) {
                 Serial.println("Y");
                 updateCharacteristic(buttonCharacteristic, A);
-                speedCheckMode = true;
-                valuesConfigured = 8;
+                continueShooting++;
             }
             if (checkButton(buttonB)) {
                 Serial.println("N");
                 updateCharacteristic(buttonCharacteristic, B);
-                speedCheckMode = false;
-                valuesConfigured++;
+                continueShooting++;
             }
         }
 

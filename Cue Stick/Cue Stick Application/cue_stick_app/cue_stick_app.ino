@@ -7,7 +7,7 @@ int buttonHistoryArray[10];
 int buttonHistoryIndex;
 bool konamiCodeInput;
 uint8_t operationMode;
-enum opStates   {SHOT_MODE, BLIND_MODE, DEBUG_MODE, KONAMI_CODE};
+enum opStates   {STANDBY_MODE, SHOT_MODE, BLIND_MODE, DEBUG_MODE, KONAMI_CODE};
 
 
 // Main Functions
@@ -37,6 +37,16 @@ void loop() {
         operationMode = BLIND_MODE;
     
     switch(operationMode) {
+        case STANDBY_MODE: // CCU hasn't configured yet
+            if (checkButton(buttonA)) {
+                Serial.println("Y");
+                updateCharacteristic(buttonCharacteristic, A); // Send CCU yes
+            } 
+            if (checkButton(buttonB)) {
+                Serial.println("N");
+                updateCharacteristic(buttonCharacteristic, B); // Send CCU no
+            }
+        
         case SHOT_MODE: {
             fsmLoop();
             break;
