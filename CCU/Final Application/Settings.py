@@ -44,12 +44,13 @@ STRENGTH_CHAR_UUID = '' # TODO
 HUD_connected = False
 stick_connected = False
 glove_connected = False
-VISION_connected = False
+VISION_connected = True # ! Change to False later
 
 #central device
 HUD_monitor = None 
 glove_monitor = None
 stick_monitor = None 
+VISION_monitor = None
 bt_thread = None
 
 # HUD Characteristics & Variables
@@ -63,6 +64,8 @@ HUD_audio_char = None
 HUD_image_char = None
 HUD_notification_cb_set = False
 image_counter = 0
+actual_x = 0
+actual_y = 0
 received_integers = []
 
 # Glove Characteristics
@@ -78,8 +81,13 @@ stick_yaw_char = None
 stick_button_char = None
 stick_fsm_char = None
 stick_notification_cb_set = False
+received_acceleration = []
 
 # TODO: make BLE characteristics for VISION communication
+VISION_angle_char = None
+VISION_strength_char = None
+VISION_next_shot_char = None
+VISION_notification_cb_set = False
 
 # CCU State Variables
 user_impaired = False
@@ -135,3 +143,4 @@ new_glove_angle_received = False
 new_glove_dist_received = False
 new_stick_pitch_received = False
 new_stick_button_received = False
+new_stick_fsm_received = False

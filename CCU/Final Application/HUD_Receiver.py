@@ -1,4 +1,4 @@
-from Settings import *
+from BLE_Functions import *
 
 def comp_vision(image_path, final_image_name):
     # Read image from file path
@@ -124,7 +124,8 @@ def comp_vision(image_path, final_image_name):
         # Noise filtering for mask
         kernel_laser = np.ones((2,2),np.uint8)
         mask_laser = cv2.morphologyEx(mask_laser, cv2.MORPH_CLOSE, kernel_laser) #EXPERIMENTAL
-        
+
+        global actual_x, actual_y
         laser_x = 0
         laser_y = 0
         laser_found = False
@@ -251,42 +252,3 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
         comp_vision(f"HUD_receiver_test_{image_counter}.jpeg", f"HUD_receiver_test_contours_{image_counter}.jpeg")
         received_integers = []
         image_counter += 1
-
-def HUD_on_disconnect(self):
-    #global bt_thread
-    """Disconnect from the remote device."""
-    print('HUD Disconnected!')  
-    print('Stopping notify')
-    for character in HUD_monitor._characteristics:
-        character.stop_notify()  
-    print('Disconnecting...')  
-    HUD_monitor.disconnect()   
-    #monitor.quit() #bt_thread should exit after this #commented out since only stick_monitor will be running the glib loop
-    
-      
-    #flag setting
-    global HUD_connected
-    HUD_connected = False
-    #print( f"The thread is {bt_thread}")
-
-    #while (bt_thread.is_alive()):
-    #    continue
-
-    #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
-    time.sleep(5)
-    for dongle in adapter.Adapter.available():
-        devices = central.Central.available(dongle.address)
-        while not devices:
-            print("Cannot find server. Sleeping for 2s...")
-            time.sleep(2)
-            devices = scan_for_devices(name='HUD')
-            print('Found our device!')
-        for dev in devices:
-            if HUD_SERVER_SRV.lower() in dev.uuids:
-                print('Found our device!')
-                connect_and_run(dev, 'HUD')
-                #bt_thread.start()
-                #print(f"Just started thread {bt_thread}")
-                break
-        break

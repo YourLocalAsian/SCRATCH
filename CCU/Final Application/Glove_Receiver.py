@@ -1,4 +1,4 @@
-from Settings import *
+from BLE_Functions import *
 
 # Variables for holding received values
 glove_received_yaw = 0
@@ -153,41 +153,3 @@ def check_glove_distance():
 
     return # Only returns once distance is correct enough
 
-def glove_on_disconnect(self):
-    global glove_connected
-    #global bt_thread
-    
-    """Disconnect from the remote device."""
-    print('GLOVE Disconnected!')  
-    print('Stopping notify')
-    for character in glove_monitor._characteristics:
-        character.stop_notify()  
-    print('Disconnecting...')  
-    glove_monitor.disconnect()   
-    #monitor.quit() #bt_thread should exit after this
-    
-    #flag setting
-    glove_connected = False
-    #print( f"The thread is {bt_thread}")
-
-    #while (bt_thread.is_alive()):
-    #    continue
-
-    # Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
-    time.sleep(5)
-    for dongle in adapter.Adapter.available():
-        devices = central.Central.available(dongle.address)
-        while not devices:
-            print("Cannot find server. Sleeping for 2s...")
-            time.sleep(2)
-            devices = scan_for_devices(name='glove') #TODO Change the scan function to accept what to scan for?
-            print('Found our device!')
-        for dev in devices:
-            if GLOVE_SERVER_SRV.lower() in dev.uuids:
-                print('Found our device!')
-                connect_and_run(dev, 'glove')
-                #bt_thread.start()
-                #print(f"Just started thread {bt_thread}")
-                break
-        break

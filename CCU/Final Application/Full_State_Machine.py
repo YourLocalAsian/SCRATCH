@@ -3,11 +3,9 @@ import threading
 import time 
 import sys
 import random
-from Settings import *
 from Glove_Receiver import *
 from HUD_Receiver import *
 from Stick_Receiver import *
-from BLE_Functions import *
 
 # User Set Up Functions
 def set_impaired():
@@ -31,8 +29,12 @@ def set_impaired():
     # play audio confirming choice
     if user_impaired:
         prompt = BLIND_SELECTED
+        mode = 1
+        HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
     else:
         prompt = NONBLIND_SELECTED
+        mode = 2
+        HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
     HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
     return
@@ -67,7 +69,6 @@ def set_operating_mode():
 # Game Mode Functions
 def game_mode(angle, strength): # Called continously until shot is completed
     global user_impaired
-
     debug_print = True
     
     if debug_print:
@@ -77,7 +78,6 @@ def game_mode(angle, strength): # Called continously until shot is completed
     if strength > 100: # strength is set to max value when game is completed 
         if debug_print:
             print("Game completed")
-            time.sleep(1)
         return
     
     # Check if ongoing game
@@ -86,16 +86,16 @@ def game_mode(angle, strength): # Called continously until shot is completed
         if user_impaired:
             if debug_print:
                 print("Calling blind user shot attempt")
-                time.sleep(1)
             shot_attempt_bld(angle, strength)
         else:
             if debug_print:
                 print("Calling standard user shot attempt")
-                time.sleep(1)
             shot_attempt_std(0, 0, strength)
     
     else: # strength is negative when starting a game
         # Ensure connection to VISION has been established
+        while (VISION_connected == False):
+            pass
         if debug_print:
             print("Connection to VISION verified")
             time.sleep(1)
@@ -114,8 +114,8 @@ def game_mode(angle, strength): # Called continously until shot is completed
     if debug_print:
         print("Shot data received")
     
-    p_angle = 0
-    p_strength = 1
+    p_angle = random.randomint(-180, 180)
+    p_strength = random.randint(0, 5)
     
     # Make recursive call
     if debug_print:
@@ -126,7 +126,7 @@ def game_mode(angle, strength): # Called continously until shot is completed
     return
 
 # Training Mode Functions
-def training_mode(shot_x, shot_y, strength): # TODO
+def training_mode(shot_x, shot_y, strength):
     debug_print = True
     continue_playing = True
 
@@ -139,7 +139,13 @@ def training_mode(shot_x, shot_y, strength): # TODO
         shot_attempt_std(shot_x, shot_y, strength)
 
         # Ask user if they want to continue
-        continue_playing = False # ! IDK how we want to do this in practice
+        while (new_stick_button_received == False):
+            pass
+
+        if stick_received_button == ButtonInput.A:
+            continue_playing = True
+        elif stick_received_button == ButtonInput.B:
+            continue_playing = False
         
     else:
         if debug_print:
@@ -150,27 +156,68 @@ def training_mode(shot_x, shot_y, strength): # TODO
         # Generate PoC and Power
         if debug_print:
             print("Generating random PoC & power")
-        p_x = 0
-        p_y = 0
-        p_strength = 1
+        p_x = random.randint(-15,15)
+        p_y = random.randint(-15,15)
+        p_strength = random.randint(0,5)
 
         # Make recursive call
         if debug_print:
             print("Making recursive call to training_mode()")
-            time.sleep(1)
         training_mode(p_x, p_y, p_strength)
     
     else:
         if debug_print:
             print("Exiting training_mode()")
-            time.sleep(1)
 
     return
 
 # Shot Attempt Functions
 def shot_attempt_std(desired_x, desired_y, desired_strength):
-    print("\tDoing standard shot stuff")
-    time.sleep(5)
+    global HUD_mode_char, HUD_fsm_char, HUD_poi_x_char, HUD_poi_y_char, HUD_power_char
+    global actual_x, actual_y, stick_received_fsm, new_stick_fsm_received
+
+    debug_print = True
+
+    # Send target to HUD
+    if debug_print:
+        print("\tSending target to HUD")
+    HUD_power_char.write_value(desired_strength.to_bytes(1, byteorder='big', signed = False))
+    HUD_poi_x_char.write_value(desired_x.to_bytes(1, byteorder='big', signed = False))
+    HUD_poi_y_char.write_value(desired_y.to_bytes(1, byteorder='big', signed = False))
+
+    # Wait for TAKING_SHOT
+    if debug_print:
+        print("\tWaiting for TAKING_SHOT")
+    while (stick_received_fsm != 3):
+        while (new_stick_fsm_received == False):
+            pass
+
+    # Trigger HUD to take picture
+    if debug_print:
+        print("\tTriggering HUD to take picture")
+    state = 3
+    HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+
+    # Process image & acceleration
+    if debug_print:
+        print("\tProcessing shot")
+    time.sleep(12) # should receive image by then
+
+    # Wait for SHOT_TAKEN
+    while (stick_received_fsm != 4):
+            while (new_stick_fsm_received == False):
+                pass
+    actual_pow = map_acceleration()
+
+    # Send feedback to HUD
+    pow = int(actual_pow)
+    poi_x = int(actual_x)
+    poi_y = int(actual_y)
+    if debug_print:
+        print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+    HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+    HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
+    HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
     
     return
 

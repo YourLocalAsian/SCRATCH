@@ -1,4 +1,8 @@
-from Settings import *
+from BLE_Functions import *
+
+MAX_ACCELERATION = 1000
+mapArray = [-1, -3, -5, -7, -9, -11, -13]
+ballSpeed = ["SOFT_TOUCH", "SLOW", "MEDIUM", "FAST", "POWER", "BREAK", "POWER_BREAK"]
 
 # Variables for holding received values
 stick_received_acc = 0
@@ -16,6 +20,8 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
+    global received_acceleration
+    
     value = changed_props.get('Value', None)
     print(f'Value is {value}')
     if not value:
@@ -29,7 +35,12 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
+    
+    # Store the acceleration values
+    received_acceleration.append(number)
     print(f"Received the acc value {number}.")
+
+    return
 
 def stick_on_new_roll(iface, changed_props, invalidated_props):
     """
@@ -62,6 +73,8 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
+    global stick_received_pitch, new_stick_pitch_received
+
     value = changed_props.get('Value', None)
     if not value:
         print("\'Value\' not found!")
@@ -74,7 +87,15 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the pitch value {number}.")
+    
+    # Store pitch value
+    stick_received_pitch = number
+    print(f"Received the pitch value {stick_received_pitch}.")
+
+    # Set flag that pitch received 
+    new_stick_pitch_received = True
+
+    return
 
 def stick_on_new_yaw(iface, changed_props, invalidated_props):
     """
@@ -124,7 +145,6 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     # Set flag that button received
     new_stick_button_received = True
 
-
 def stick_on_new_fsm(iface, changed_props, invalidated_props):
     """
     Callback used to receive notification events from the device.
@@ -132,6 +152,8 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
+    global stick_received_fsm, new_stick_fsm_received
+
     value = changed_props.get('Value', None)
     if not value:
         print("\'Value\' not found!")
@@ -142,9 +164,15 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
     number = (number << 8) + int(value[1])
     number = (number << 8) + int(value[0])
     number = int(number)
-    print(f"Received the fsm value {number}. Setting state to 5")
-    x = 5
-    stick_fsm_char.write_value(x.to_bytes(1,byteorder='big', signed=False))
+    
+    # Store FSM Value
+    stick_received_fsm = number
+    print(f"Received the fsm value {stick_received_fsm}.")
+
+    # Set flag
+    new_stick_fsm_received = True
+
+    return
 
 # Checking functions
 def check_stick_pitch():
@@ -181,41 +209,21 @@ def check_stick_pitch():
 
     return
 
-def stick_on_disconnect(self):
-    global bt_thread
-    """Disconnect from the remote device."""
-    print('STICK Disconnected!')  
-    print('Stopping notify')
-    for character in stick_monitor._characteristics:
-        character.stop_notify()  
-    print('Disconnecting...')  
-    stick_monitor.disconnect()   
-    stick_monitor.quit() #bt_thread should exit after this
+def map_acceleration():
+    # Find global minima
+    minimum = MAX_ACCELERATION
+    for s in received_acceleration:
+        if s < minimum:
+            minimum = s
+        else:
+            minimum = minimum
     
-      
-    #flag setting
-    global stick_connected
-    stick_connected = False
-    print( f"The thread is {bt_thread}")
-
-    #while (bt_thread.is_alive()):
-    #    continue
-
-    #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
-    time.sleep(5)
-    for dongle in adapter.Adapter.available():
-        devices = central.Central.available(dongle.address)
-        while not devices:
-            print("Cannot find server. Sleeping for 2s...")
-            time.sleep(2)
-            devices = scan_for_devices(name='stick')
-            print('Found our device!')
-        for dev in devices:
-            if STICK_SERVER_SRV.lower() in dev.uuids:
-                print('Found our device!')
-                bt_thread = threading.Thread(target=connect_and_run, args=[dev, 'stick'])
-                bt_thread.start()
-                print(f"Just started thread {bt_thread}")
-                break
-        break
+    # Map acceleration to strength
+    mapped = 0
+    for i in mapArray:
+        if minimum <= mapArray[i]:
+            mapped = i 
+    
+    received_acceleration = [] # clear received_acceleration b.c shot is done
+    
+    return mapped
