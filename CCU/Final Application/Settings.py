@@ -92,13 +92,13 @@ VISION_notification_cb_set = False
 # CCU State Variables
 user_impaired = False
 
-class OperatingMode(Enum):
+class OperatingMode(IntEnum):
     GAME = 0
     TRAINING = 1
 
 operation_mode = OperatingMode.GAME
 
-class ButtonInput(Enum):
+class ButtonInput(IntEnum):
     UP = 0
     DOWN = 1
     LEFT = 2
