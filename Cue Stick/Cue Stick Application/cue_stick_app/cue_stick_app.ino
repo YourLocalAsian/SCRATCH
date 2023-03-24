@@ -40,7 +40,7 @@ void loop() {
     }
     
     switch(operationMode) {
-        case STANDBY_MODE: // CCU hasn't configured yet
+        case STANDBY_MODE: {// CCU hasn't configured yet
             if (checkButton(buttonA)) {
                 Serial.println("Y");
                 updateCharacteristic(buttonCharacteristic, A); // Send CCU yes
@@ -49,6 +49,8 @@ void loop() {
                 Serial.println("N");
                 updateCharacteristic(buttonCharacteristic, B); // Send CCU no
             }
+            break;
+        }
         
         case SHOT_MODE: {
             fsmLoop();

@@ -333,7 +333,7 @@ void blindFsmLoop() {
         mapped = mapAcceleration(minima);
         if (printMappedValue) {
             Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
-            if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
+            // if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
         }
         shotAttempt = false;
     }
