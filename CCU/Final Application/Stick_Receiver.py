@@ -1,8 +1,10 @@
 from BLE_Functions import *
+import Settings
+import time
 
 MAX_ACCELERATION = 1000
-mapArray = [-1, -3, -5, -7, -9, -11, -13]
-ballSpeed = ["SOFT_TOUCH", "SLOW", "MEDIUM", "FAST", "POWER", "BREAK", "POWER_BREAK"]
+mapArray = [-1, -3, -5, -7, -9]
+ballSpeed = ["SOFT_TOUCH", "SLOW", "MEDIUM", "FAST", "POWER"]
 
 # Variables for holding received values
 stick_received_acc = 0
@@ -20,10 +22,9 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
-    global received_acceleration
     
     value = changed_props.get('Value', None)
-    print(f'Value is {value}')
+    #print(f'Value is {value}')
     if not value:
         print("\'Value\' not found!")
         return
@@ -37,8 +38,8 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
         number -= 4294967296
     
     # Store the acceleration values
-    received_acceleration.append(number)
-    print(f"Received the acc value {number}.")
+    Settings.stick_received_acceleration.append(number)
+    #print(f"Received the acc value {number}.")
 
     return
 
@@ -55,16 +56,16 @@ def stick_on_new_roll(iface, changed_props, invalidated_props):
         return
 
     number = int(value[3])
-    print(number)
+    #print(number)
     binn = bin(number)
-    print(f"Binary value is {binn}")
+    #print(f"Binary value is {binn}")
     number = (number << 8) + int(value[2])
     number = (number << 8) + int(value[1]) 
     number = (number << 8) + int(value[0])
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the roll value {int(number)}.")
+    #print(f"Received the roll value {int(number)}.")
 
 def stick_on_new_pitch(iface, changed_props, invalidated_props):
     """
@@ -73,7 +74,7 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
-    global stick_received_pitch, new_stick_pitch_received
+    global stick_received_pitch
 
     value = changed_props.get('Value', None)
     if not value:
@@ -90,10 +91,10 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
     
     # Store pitch value
     stick_received_pitch = number
-    print(f"Received the pitch value {stick_received_pitch}.")
+    #print(f"Received the pitch value {stick_received_pitch}.")
 
     # Set flag that pitch received 
-    new_stick_pitch_received = True
+    Settings.new_stick_pitch_received = True
 
     return
 
@@ -116,7 +117,7 @@ def stick_on_new_yaw(iface, changed_props, invalidated_props):
     number = int(number)
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
-    print(f"Received the yaw value {number}.")
+    #print(f"Received the yaw value {number}.")
 
 def stick_on_new_button(iface, changed_props, invalidated_props):
     """
@@ -125,7 +126,7 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
-    global stick_received_button, new_stick_button_received
+    global stick_received_button
     
     value = changed_props.get('Value', None)
     if not value:
@@ -140,10 +141,10 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     
     # Store distance value
     stick_received_button = number
-    print(f"Received the button value {stick_received_button}.")
+    #print(f"Received the button value {stick_received_button}.")
 
     # Set flag that button received
-    new_stick_button_received = True
+    Settings.new_stick_button_received = True
 
 def stick_on_new_fsm(iface, changed_props, invalidated_props):
     """
@@ -176,15 +177,14 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
 
 # Checking functions
 def check_stick_pitch():
-    global ANGLE_THRESHOLD, HUD_audio_char
-    global new_stick_pitch_received, stick_received_pitch
+    global stick_received_pitch
     pitch = 180
     debug_print = True
 
-    new_stick_pitch_received = False # initialize flag
+    Settings.new_stick_pitch_received = False # initialize flag
 
-    while abs(pitch) > ANGLE_THRESHOLD:
-        while (new_stick_pitch_received == False): # block until new stick pitch received
+    while abs(pitch) > Settings.ANGLE_THRESHOLD:
+        while (Settings.new_stick_pitch_received == False): # block until new stick pitch received
             pass
         
         pitch = stick_received_pitch
@@ -194,25 +194,27 @@ def check_stick_pitch():
                 print("\t\Tilt stick down")
                 time.sleep(1)
             # Send audio cue
-            prompt = AIM_LOWER
-            HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = Settings.AIM_LOWER
+            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            time.sleep(2)
         else:
             if debug_print:
                 print("\t\tTilt stick up")
                 time.sleep(1)
             # Send audio cue
-            prompt = AIM_HIGHER
-            HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = Settings.AIM_HIGHER
+            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            time.sleep(2)
 
         time.sleep(1)
-        new_stick_pitch_received = False # clear flag before proceeding
+        Settings.new_stick_pitch_received = False # clear flag before proceeding
 
     return
 
 def map_acceleration():
     # Find global minima
     minimum = MAX_ACCELERATION
-    for s in received_acceleration:
+    for s in Settings.stick_received_acceleration:
         if s < minimum:
             minimum = s
         else:
@@ -220,10 +222,10 @@ def map_acceleration():
     
     # Map acceleration to strength
     mapped = 0
-    for i in mapArray:
+    for i in range(len(mapArray) - 1):
         if minimum <= mapArray[i]:
             mapped = i 
     
-    received_acceleration = [] # clear received_acceleration b.c shot is done
+    Settings.stick_received_acceleration = [] # clear received_acceleration b.c shot is done
     
     return mapped

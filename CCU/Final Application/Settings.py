@@ -81,7 +81,7 @@ stick_yaw_char = None
 stick_button_char = None
 stick_fsm_char = None
 stick_notification_cb_set = False
-received_acceleration = []
+stick_received_acceleration = []
 
 # TODO: make BLE characteristics for VISION communication
 VISION_angle_char = None
@@ -123,12 +123,12 @@ ENTERING_TM = 0
 MOVE_FOR_CALIBRATION = 0
 ZERO_OUT_GLOVE = 0
 GLOVE_ZEROED_OUT = 0
-TURN_LEFT = 0
-TURN_RIGHT = 0
-MOVE_FORWARD = 0
-MOVE_BACKWARD = 0
+TURN_LEFT = 5
+TURN_RIGHT = 6
+MOVE_FORWARD = 4
+MOVE_BACKWARD = 3
 AIM_HIGHER = 0
-AIM_LOWER = 0
+AIM_LOWER = 1
 CHECKING_GLOVE_ANGLE = 0
 GLOVE_ANGLE_CORRECT = 0
 CHECKING_GLOVE_DISTANCE = 0
@@ -136,7 +136,7 @@ GLOVE_DISTANCE_CORRECT = 0
 CHECKING_STICK_PITCH = 0
 STICK_PITCH_CORRECT = 0
 TAKE_SHOT = 0
-NICE_SHOT = 0
+NICE_SHOT = 7
 
 # Blocking Flags
 new_glove_angle_received = False

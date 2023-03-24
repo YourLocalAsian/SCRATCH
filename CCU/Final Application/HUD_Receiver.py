@@ -1,4 +1,12 @@
 from BLE_Functions import *
+import Settings
+import struct
+import threading
+import time 
+import sys
+import random
+import cv2
+import numpy as np
 
 def comp_vision(image_path, final_image_name):
     # Read image from file path
@@ -125,7 +133,6 @@ def comp_vision(image_path, final_image_name):
         kernel_laser = np.ones((2,2),np.uint8)
         mask_laser = cv2.morphologyEx(mask_laser, cv2.MORPH_CLOSE, kernel_laser) #EXPERIMENTAL
 
-        global actual_x, actual_y
         laser_x = 0
         laser_y = 0
         laser_found = False
@@ -154,11 +161,11 @@ def comp_vision(image_path, final_image_name):
             cv2.circle(cropped_image, (laser_x,laser_y),1, (0,255,0), -1)
             laser_x = (laser_x/(highX - lowX)* 30.0 - 15.0)//1.0
             laser_y = (-(laser_y/(highY - lowY)* 30.0) + 15.0)//1.0   
-            actual_x = int(laser_x)
-            actual_y = int(laser_y)
+            Settings.actual_x = int(laser_x)
+            Settings.actual_y = int(laser_y)
             print(f'The LASER coordinates are ({laser_x},{laser_y})')
             cv2.imwrite(final_image_name, cropped_image)
-            return (actual_x, actual_y)
+            return (Settings.actual_x, Settings.actual_y)
         else:
             print("No laser found. Trying brute force method")
             white_x_coordinates = []
@@ -177,9 +184,9 @@ def comp_vision(image_path, final_image_name):
                 print(f'The LASER coordinates are ({laser_x},{laser_y})')
                 cv2.circle(cropped_image, (laser_x,laser_y),1, (0,255,0), -1)
                 cv2.imwrite(final_image_name, cropped_image)
-                actual_x = laser_x
-                actual_y = laser_y
-                return (actual_x, actual_y)
+                Settings.actual_x = laser_x
+                Settings.actual_y = laser_y
+                return (Settings.actual_x, Settings.actual_y)
             else:
                 print('No laser found at all')
                 return (50,0)
@@ -195,7 +202,6 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
-    global received_integers, image_counter
 
     value = changed_props.get('Value', None)
     if not value:
@@ -204,51 +210,51 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
     
     # Append bytes in specific order
     if (len(value) > 7):
-        received_integers.append(value[7])
+        Settings.received_integers.append(value[7])
     if (len(value) > 6):
-        received_integers.append(value[6])
+        Settings.received_integers.append(value[6])
     if (len(value) > 5):
-        received_integers.append(value[5])
+        Settings.received_integers.append(value[5])
     if (len(value) > 4):
-        received_integers.append(value[4])
+        Settings.received_integers.append(value[4])
     if (len(value) > 3):
-        received_integers.append(value[3])
+        Settings.received_integers.append(value[3])
     if (len(value) > 2):
-        received_integers.append(value[2])
+        Settings.received_integers.append(value[2])
     if (len(value) > 1):
-        received_integers.append(value[1])
+        Settings.received_integers.append(value[1])
     if (len(value) > 0):
-        received_integers.append(value[0])
+        Settings.received_integers.append(value[0])
     if (len(value) > 15):
-        received_integers.append(value[15])
+        Settings.received_integers.append(value[15])
     if (len(value) > 14):
-        received_integers.append(value[14])
+        Settings.received_integers.append(value[14])
     if (len(value) > 13):
-        received_integers.append(value[13])
+        Settings.received_integers.append(value[13])
     if (len(value) > 12):
-        received_integers.append(value[12])
+        Settings.received_integers.append(value[12])
     if (len(value) > 11):
-        received_integers.append(value[11])
+        Settings.received_integers.append(value[11])
     if (len(value) > 10):
-        received_integers.append(value[10])
+        Settings.received_integers.append(value[10])
     if (len(value) > 9):
-        received_integers.append(value[9])
+        Settings.received_integers.append(value[9])
     if (len(value) > 8):
-        received_integers.append(value[8])
+        Settings.received_integers.append(value[8])
     if (len(value) > 19):
-        received_integers.append(value[19])
+        Settings.received_integers.append(value[19])
     if (len(value) > 18):
-        received_integers.append(value[18])
+        Settings.received_integers.append(value[18])
     if (len(value) > 17):
-        received_integers.append(value[17])
+        Settings.received_integers.append(value[17])
     if (len(value) > 16):
-        received_integers.append(value[16])
+        Settings.received_integers.append(value[16])
 
-    if (received_integers and bytes([received_integers[-1]]) == bytes([217]) and bytes([received_integers[-2]]) == bytes([255])):
-        with open(f"HUD_receiver_test_{image_counter}.jpeg", "wb") as fp:
-            for integer in received_integers:
+    if (Settings.received_integers and bytes([Settings.received_integers[-1]]) == bytes([217]) and bytes([Settings.received_integers[-2]]) == bytes([255])):
+        with open(f"HUD_receiver_test_{Settings.image_counter}.jpeg", "wb") as fp:
+            for integer in Settings.received_integers:
                 fp.write(bytes([integer]))
         print("Done!")
-        comp_vision(f"HUD_receiver_test_{image_counter}.jpeg", f"HUD_receiver_test_contours_{image_counter}.jpeg")
-        received_integers = []
-        image_counter += 1
+        comp_vision(f"HUD_receiver_test_{Settings.image_counter}.jpeg", f"HUD_receiver_test_contours_{Settings.image_counter}.jpeg")
+        Settings.received_integers = []
+        Settings.image_counter += 1
