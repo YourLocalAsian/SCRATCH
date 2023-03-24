@@ -31,10 +31,13 @@ void loop() {
     // Check if CCU updated characteristics
     fsmState = *(fsmCharacteristic->getData());
 
-    if (fsmState == SET_NON)
+    if (fsmState == SET_NON) {
         operationMode = SHOT_MODE;
-    else if (fsmState == SET_BLD)
+        Serial.println("Normal Mode");
+    } else if (fsmState == SET_BLD) {
         operationMode = BLIND_MODE;
+        Serial.println("Blind Mode");
+    }
     
     switch(operationMode) {
         case STANDBY_MODE: // CCU hasn't configured yet

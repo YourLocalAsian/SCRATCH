@@ -207,6 +207,7 @@ void fsmLoop() {
             Serial.printf("Minima: %.3f, Mapped: %s\n\n", minima, ballSpeed[mapped]);
             //if (speedCheckMode) while (!checkButton(buttonA)) {} // blocking statement
         }
+        userReady = false;
 
         uint8_t continueShooting = 0;
         while (continueShooting == 0) {
