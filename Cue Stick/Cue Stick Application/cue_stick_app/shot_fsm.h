@@ -427,7 +427,7 @@ void configureOperation() {
 
     if (valuesConfigured == 0) Serial.print("Speed check mode?: ");
     while (valuesConfigured == 0) {
-        if (checkButton(buttonA)) {
+        if (true) {
             Serial.println("Y");
             updateCharacteristic(buttonCharacteristic, A);
             speedCheckMode = true;
@@ -460,7 +460,7 @@ void configurePrint() {
             printYaw = true;
             valuesConfigured = 8;
         }
-        if (checkButton(buttonB)) {
+        if (true) {
             Serial.println("N");
             updateCharacteristic(buttonCharacteristic, B);
             printGraphForm = false;
@@ -471,7 +471,7 @@ void configurePrint() {
     // Use default configuration
     if (valuesConfigured == 1) Serial.print("Use default (all printed): ");
     while (valuesConfigured == 1) {
-        if (checkButton(buttonA)) {
+        if (true) {
             Serial.println("Y");
             updateCharacteristic(buttonCharacteristic, A);
             printFsmState = true;
