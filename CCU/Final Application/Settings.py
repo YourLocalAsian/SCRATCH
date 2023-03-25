@@ -118,6 +118,7 @@ class StickStates(IntEnum):
     SET_BLD = 7
 
 class HudStates(IntEnum):
+    INITIAL = 0
     BLIND = 1
     NB_TARGET = 2
     TAKE_PICTURE = 3

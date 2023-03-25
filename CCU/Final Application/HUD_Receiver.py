@@ -251,10 +251,10 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
         Settings.received_integers.append(value[16])
 
     if (Settings.received_integers and bytes([Settings.received_integers[-1]]) == bytes([217]) and bytes([Settings.received_integers[-2]]) == bytes([255])):
-        with open(f"HUD_receiver_test_{Settings.image_counter}.jpeg", "wb") as fp:
+        with open(f"HUD_images/HUD_receiver_test_{Settings.image_counter}.jpeg", "wb") as fp:
             for integer in Settings.received_integers:
                 fp.write(bytes([integer]))
         print("Done!")
-        comp_vision(f"HUD_receiver_test_{Settings.image_counter}.jpeg", f"HUD_receiver_test_contours_{Settings.image_counter}.jpeg")
+        comp_vision(f"HUD_images/HUD_receiver_test_{Settings.image_counter}.jpeg", f"HUD_images/HUD_receiver_test_contours_{Settings.image_counter}.jpeg")
         Settings.received_integers = []
         Settings.image_counter += 1

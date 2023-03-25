@@ -6,6 +6,7 @@ import random
 from BLE_Functions import *
 import Stick_Receiver
 import Glove_Receiver
+import Debug
 
 # User Set Up Functions
 def set_impaired():
@@ -327,13 +328,15 @@ def shot_attempt_bld(desired_angle, desired_strength):
     return
 
 if __name__ == '__main__':
-    if (sys.args[1] == "-h"):
-        print("SCRATCH - Shot Consulations and Refinement Applied Through Computer Hardware")
-        print("Developers:")
-        pass
-    elif (sys.args[1] == "-d"):
-        pass
+    argument_passed = True if len(sys.argv) > 1 else False
     
+    if (argument_passed):
+        if (sys.argv[1] == "--h" or sys.argv[1] == "--help"):
+            Debug.help_info()
+        elif (sys.argv[1] == "--d" or sys.argv[1] == "--debug"):
+            Debug.debug_menu()
+        else:
+            print("ERROR - unknown argument used")
     else:
         print("Welcome to  SCRATCH\n")
         

@@ -1,4 +1,5 @@
 import sys
+import time
 
 def help_info():
     print("\nSCRATCH [Version 1.0]")
@@ -17,51 +18,107 @@ def debug_menu():
     print("1. HUD")
     print("2. Cue Stick")
     print("3. Glove")
+    print("4. Exit")
     val = input("\nSelection: ")
 
-    if (val == '1'):
-        debug_HUD()
-    elif (val == '2'):
-        debug_stick()   
-    elif (val == '3'):
-        debug_glove()
-    else:
-        print("ERROR - Invalid option, exiting program\n") 
+    while (val != 4):
+        if (val == '1'):
+            debug_HUD()
+        elif (val == '2'):
+            debug_stick()
+        elif (val == '3'):
+            debug_glove()
+        elif (val == '4'):
+            print("Exiting SCRATCH... goodbye")
+            return
+        else:
+            print("ERROR - Invalid selection\n")
+            
+        print("\nSubsystem Selection:")
+        print("1. HUD")
+        print("2. Cue Stick")
+        print("3. Glove")
+        print("4. Exit")
+        val = input("\nSelection: ")
     
     return
 
 def debug_HUD():
-    print("Debugging HUD")
+    f = open("Final Application/HUD_images/test1.txt")
+    print(f.read())
+    f.close()
     return
 
 def debug_stick():
     print("\nCue Stick Selection:")
     print("1. IMU")
     print("2. Buttons")
+    print("3. Go back to main menu")
     val = input("\nSelection: ")
 
     while (val != 3):
         if (val == '1'):
-            print("Testing IMU")
-            print("\nCue Stick Selection:")
-            print("1. IMU")
-            print("2. Buttons")
-            val = input("\nSelection: ")
+            test_IMU()
         elif (val == '2'):
-            print("Testing Buttons")
-            print("\nCue Stick Selection:")
-            print("1. IMU")
-            print("2. Buttons")
-            val = input("\nSelection: ")
+            test_buttons()
+        elif (val == '3'):
+            return
         else:
-            val = 3
-
-    return
-
+            print("ERROR - Invalid selection\n")
+        
+        print("\nCue Stick Selection:")
+        print("1. IMU")
+        print("2. Buttons")
+        print("3. Go back to main menu")
+        val = input("\nSelection: ")
 
 def test_IMU():
+    print("\nIMU Test Selection")
+    print("1. Orientation")
+    print("2. Acceleration")
+    print("3. Go back to stick selection")
+    val = input("\nSelection: ")
+
+    while (val != 3):
+        if (val == '1'):
+            test_IMU_orientation()
+        elif (val == '2'):
+            test_IMU_acceleration()
+        elif (val == '3'):
+            return
+        else:
+            print("ERROR - Invalid selection\n")
+        
+        print("\nCue Stick Selection:")
+        print("1. Orientation")
+        print("2. Acceleration")
+        print("3. Go back to stick selection")
+        val = input("\nSelection: ")
+
     return
+
+def test_IMU_acceleration():
+    print("Press Ctrl+C to exit testing")
+    time.sleep(2)
+    try:
+        while True:
+            print(f"Acceleration: {1}")
+            time.sleep(0.25)
+    except KeyboardInterrupt:
+        return
+
+def test_IMU_orientation():
+    print("Press Ctrl+C to exit testing")
+    time.sleep(2)
+    try:
+        while True:
+            print(f"Roll: {1}, Pitch: {1}, Yaw: {1}")
+            time.sleep(0.25)
+    except KeyboardInterrupt:
+        return
+
 def test_buttons():
+    print("Done with buttons")
     return
 
 def debug_glove():
