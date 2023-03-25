@@ -41,6 +41,22 @@ void loop() {
     
     switch(operationMode) {
         case STANDBY_MODE: {// CCU hasn't configured yet
+            if (checkButton(buttonUp)) {
+                Serial.println("U");
+                updateCharacteristic(buttonCharacteristic, UP); // Send CCU yes
+            }
+            if (checkButton(buttonDown)) {
+                Serial.println("D");
+                updateCharacteristic(buttonCharacteristic, DOWN); // Send CCU yes
+            }
+            if (checkButton(buttonLeft)) {
+                Serial.println("L");
+                updateCharacteristic(buttonCharacteristic, LEFT); // Send CCU yes
+            }
+            if (checkButton(buttonRight)) {
+                Serial.println("R");
+                updateCharacteristic(buttonCharacteristic, RIGHT); // Send CCU yes
+            }
             if (checkButton(buttonA)) {
                 Serial.println("Y");
                 updateCharacteristic(buttonCharacteristic, A); // Send CCU yes

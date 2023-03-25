@@ -327,36 +327,45 @@ def shot_attempt_bld(desired_angle, desired_strength):
     return
 
 if __name__ == '__main__':
-    print("Starting SCRATCH\n")
-    connect_to_everything() # Connect to all peripherals
-    
-    while (not Settings.HUD_connected or not Settings.stick_connected or not Settings.glove_connected):
+    if (sys.args[1] == "-h"):
+        print("SCRATCH - Shot Consulations and Refinement Applied Through Computer Hardware")
+        print("Developers:")
         pass
-    print(f"Successfully connected\n")
-
-    Settings.HUD_audio_char.write_value(Settings.WELCOME.to_bytes(1, byteorder='big', signed = False)) # Welcome to SCRATCH
-    time.sleep(2)
-
-    # Determine blind vs not blind
-    set_impaired()
-    print(f"Impairedness set:", Settings.user_impaired, "\n")
-    time.sleep(5)
-
-    # Determine Game Mode VS Training Mode
-    set_operating_mode()
-    print(f"Operating mode set:", Settings.operation_mode, "\n")
-
-    # Normal Operation
-    if Settings.operation_mode == Settings.OperatingMode.GAME:
-        print("Calling game_mode")
-        game_mode(0, -1)
-    elif Settings.operation_mode == Settings.OperatingMode.TRAINING:
-        if Settings.user_impaired == False:
-            print("Calling training_mode")
-            training_mode(0, 0, 0)
-        elif Settings.user_impaired == True:
-            print("ERROR - blind user cannot enter training mode")
+    elif (sys.args[1] == "-d"):
+        pass
+    
     else:
-        print("ERROR - IDK how we got here")
+        print("Welcome to  SCRATCH\n")
+        
+        connect_to_everything() # Connect to all peripherals
+        
+        while (not Settings.HUD_connected or not Settings.stick_connected or not Settings.glove_connected):
+            pass
+        print(f"Successfully connected\n")
 
-    print("Finished")
+        Settings.HUD_audio_char.write_value(Settings.WELCOME.to_bytes(1, byteorder='big', signed = False)) # Welcome to SCRATCH
+        time.sleep(2)
+
+        # Determine blind vs not blind
+        set_impaired()
+        print(f"Impairedness set:", Settings.user_impaired, "\n")
+        time.sleep(5)
+
+        # Determine Game Mode VS Training Mode
+        set_operating_mode()
+        print(f"Operating mode set:", Settings.operation_mode, "\n")
+
+        # Normal Operation
+        if Settings.operation_mode == Settings.OperatingMode.GAME:
+            print("Calling game_mode")
+            game_mode(0, -1)
+        elif Settings.operation_mode == Settings.OperatingMode.TRAINING:
+            if Settings.user_impaired == False:
+                print("Calling training_mode")
+                training_mode(0, 0, 0)
+            elif Settings.user_impaired == True:
+                print("ERROR - blind user cannot enter training mode")
+        else:
+            print("ERROR - IDK how we got here")
+
+        print("Finished")
