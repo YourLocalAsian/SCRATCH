@@ -107,6 +107,22 @@ class ButtonInput(IntEnum):
     B = 5
     NONE = 6
 
+class StickStates(IntEnum):
+    NOT_READY = 0
+    READY = 1
+    WAITING = 2
+    TAKING_SHOT = 3
+    SHOT_TAKEN = 4
+    PAUSED = 5
+    SET_NON = 6
+    SET_BLD = 7
+
+class HudStates(IntEnum):
+    BLIND = 1
+    NB_TARGET = 2
+    TAKE_PICTURE = 3
+    ACTUAL = 4
+
 # Blind Shot Mode Variables
 ANGLE_THRESHOLD = 3.0
 DESIRED_DISTANCE = 1.0

@@ -35,13 +35,11 @@ def set_impaired():
     # play audio confirming choice
     if Settings.user_impaired:
         #prompt = BLIND_SELECTED
-        mode = 1
-        Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+        Settings.HUD_mode_char.write_value(Settings.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
         print("User is impaired\n")
     else:
         #prompt = NONBLIND_SELECTED
-        mode = 2
-        Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+        Settings.HUD_mode_char.write_value(Settings.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
         print("User is not impaired\n")
     #Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
 
@@ -55,8 +53,7 @@ def set_operating_mode():
         Settings.operation_mode = Settings.OperatingMode.GAME
         #prompt = ENTERING_GM
         #Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-        mode = 7
-        Settings.stick_fsm_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+        Settings.stick_fsm_char.write_value(Settings.StickStates.SET_BLD.to_bytes(1, byteorder='big', signed = False))
         return
     
     else:
@@ -70,18 +67,17 @@ def set_operating_mode():
             if Settings.new_stick_button_received:
                 Settings.operation_mode = Settings.OperatingMode.GAME
                 Settings.new_stick_button_received = False
-                mode = 3
-                Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+                #mode = 3 
+                #Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
                 print("Game Mode selected\n")
                 return
             time.sleep(1)
 
-    mode = 4
-    Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+    #mode = 4
+    #Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? Also don't know why this one
     Settings.operation_mode = Settings.OperatingMode.TRAINING
     print("Training Mode selected\n")
-    mode = 6
-    Settings.stick_fsm_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+    Settings.stick_fsm_char.write_value(Settings.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
 
     return
 
@@ -200,8 +196,7 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     # Send target to HUD
     if debug_print:
         print(f"\tSending target to HUD: {desired_strength}, {desired_x}, {desired_y} | {desired_strength.to_bytes(1, byteorder='big', signed = False)}, {desired_x.to_bytes(1, byteorder='big', signed = True)}, {desired_y.to_bytes(1, byteorder='big', signed = True)}")
-    state = 2
-    Settings.HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_fsm_char.write_value(Settings.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
     Settings.HUD_power_char.write_value(desired_strength.to_bytes(1, byteorder='big', signed = False))
     Settings.HUD_poi_x_char.write_value(desired_x.to_bytes(4, byteorder='big', signed = True))
     Settings.HUD_poi_y_char.write_value(desired_y.to_bytes(4, byteorder='big', signed = True))
@@ -209,15 +204,20 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     # Wait for TAKING_SHOT
     if debug_print:
         print("\tWaiting for TAKING_SHOT")
-    while (Stick_Receiver.stick_received_fsm != 3):
-        print(f"FSM: {Stick_Receiver.stick_received_fsm}")
-        time.sleep(1)
+    
+    last_fsm_time = time.time() # * Store last time flag in callback was set
+    while (Stick_Receiver.stick_received_fsm != Settings.StickStates.TAKING_SHOT):
+        if (time.time() - last_fsm_time > 5): # check if fsm state has been received within the last 5s
+            print("ERROR - Stick FSM has not been received for 5s")
+        if (Settings.new_stick_fsm_received):
+            print(f"FSM: {Stick_Receiver.stick_received_fsm}")
+            last_fsm_time = time.time()
+            #time.sleep(1) # ? don't think this sleep is necessary
 
     # Trigger HUD to take picture
     if debug_print:
         print("\tTriggering HUD to take picture")
-    state = 3
-    Settings.HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_fsm_char.write_value(Settings.HudStates.TAKE_PICTURE.to_bytes(1, byteorder='big', signed = False))
 
     # Process image & acceleration
     if debug_print:
@@ -225,7 +225,7 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     time.sleep(8) # should receive image by then
 
     # Wait for SHOT_TAKEN
-    while (Stick_Receiver.stick_received_fsm != 4):
+    while (Stick_Receiver.stick_received_fsm != Settings.StickStates.SHOT_TAKEN):
         print(f"FSM: {Stick_Receiver.stick_received_fsm}")
         time.sleep(1)
     actual_pow = Stick_Receiver.map_acceleration()
@@ -236,8 +236,7 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     poi_y = int(Settings.actual_y)
     if debug_print:
         print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
-    state = 4
-    Settings.HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_fsm_char.write_value(Settings.HudStates.ACTUAL.to_bytes(1, byteorder='big', signed = False))
     Settings.HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
     Settings.HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
     Settings.HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
@@ -252,39 +251,35 @@ def shot_attempt_bld(desired_angle, desired_strength):
     
     if debug_print:
         print("\tDoing blind shot stuff")
+    
+    # Pause cue stick to avoid false SHOT_TAKEN
+    Settings.stick_fsm_char.write_value(Settings.StickStates.PAUSED.to_bytes(1, byteorder='big', signed = False))
 
     # Check if glove has been zeroed out
-    prompt = Settings.MOVE_FOR_CALIBRATION
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-    
+    Settings.HUD_audio_char.write_value(Settings.MOVE_FOR_CALIBRATION.to_bytes(1, byteorder='big', signed = False))
     #Glove_Receiver.check_glove_zeroed()
-    
-    prompt = Settings.GLOVE_ZEROED_OUT
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.GLOVE_ZEROED_OUT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     # Check glove angle for correctness
     if debug_print:
         print("\tChecking glove angle")
         time.sleep(1)
-    prompt = Settings.CHECKING_GLOVE_ANGLE
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.CHECKING_GLOVE_ANGLE.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
     
     Glove_Receiver.check_glove_angle(desired_angle) # Call function in Glove_Receiver.py
     
     if debug_print:
         print("\tGlove angle correct")
-    prompt = Settings.GLOVE_ANGLE_CORRECT
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.GLOVE_ANGLE_CORRECT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     # Check glove distance
     if debug_print:
         print("\tChecking glove distance")
         time.sleep(1)
-    prompt = Settings.CHECKING_GLOVE_DISTANCE
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.CHECKING_GLOVE_DISTANCE.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
     
     Glove_Receiver.check_glove_distance()
@@ -292,16 +287,17 @@ def shot_attempt_bld(desired_angle, desired_strength):
     if debug_print:
         print("\tGlove distance correct")
         time.sleep(1)
-    prompt = Settings.GLOVE_DISTANCE_CORRECT
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.GLOVE_DISTANCE_CORRECT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
+
+    # Unpause cue stick
+    Settings.stick_fsm_char.write_value(Settings.StickStates.NOT_READY.to_bytes(1, byteorder='big', signed = False))
 
     # Check cue stick pitch
     if debug_print:
         print("\tChecking cue stick pitch")
         time.sleep(1)
-    prompt = Settings.CHECKING_STICK_PITCH
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.CHECKING_STICK_PITCH.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     Stick_Receiver.check_stick_pitch()
@@ -309,21 +305,17 @@ def shot_attempt_bld(desired_angle, desired_strength):
     if debug_print:
         print("\tCue stick level")
         time.sleep(1)
-    prompt = Settings.STICK_PITCH_CORRECT
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.STICK_PITCH_CORRECT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     # Send audio cue to HUD "Take shot"
-    prompt = Settings.TAKE_SHOT
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.TAKE_SHOT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
     
     # Wait for "Shot Taken" from cue stick
     while (Stick_Receiver.stick_received_fsm != 4):
         pass
-
-    prompt = Settings.NICE_SHOT
-    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.NICE_SHOT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
     
     return
