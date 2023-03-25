@@ -264,8 +264,8 @@ def shot_attempt_bld(desired_angle, desired_strength):
 
     # Check if glove has been zeroed out
     Settings.HUD_audio_char.write_value(Settings.MOVE_FOR_CALIBRATION.to_bytes(1, byteorder='big', signed = False))
-    #Glove_Receiver.check_glove_zeroed()
-    Settings.HUD_audio_char.write_value(Settings.GLOVE_ZEROED_OUT.to_bytes(1, byteorder='big', signed = False))
+    Glove_Receiver.check_glove_zeroed()
+    #Settings.HUD_audio_char.write_value(Settings.GLOVE_ZEROED_OUT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     # Check glove angle for correctness

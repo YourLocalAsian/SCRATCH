@@ -411,35 +411,35 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
             int num = *(rx_char->getData());
             Serial.print("Received audio command ");
             Serial.println(num);
-            if(num == 0){
-              audio.connecttoFS(SD,"/Aim Higher.mp3");
+            if (num == 0){
+              audio.connecttoFS(SD,"/Welcome to Scratch.mp3");
             }
             else if (num == 1){
-              audio.connecttoFS(SD,"/Aim Lower.mp3");
+              audio.connecttoFS(SD,"/Visually Impaired Prompt.mp3");
             }
             else if (num == 2){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
+              audio.connecttoFS(SD,"/Entering Blind Mode.mp3");
             }
             else if (num == 3){
-              audio.connecttoFS(SD,"/Move Hand Backward.mp3");
+              audio.connecttoFS(SD,"/Entering Non-Impaired Mode.mp3");
             }
             else if (num == 4){
-              audio.connecttoFS(SD,"/Move Hand Forward.mp3");
+              audio.connecttoFS(SD,"/Press for Training Mode.mp3");
             }
             else if (num == 5){
-              audio.connecttoFS(SD,"/Move Hand Left.mp3");
+              audio.connecttoFS(SD,"/Entering Game Mode.mp3");
             }
             else if (num == 6){
-              audio.connecttoFS(SD,"/Move Hand Right.mp3");
+              audio.connecttoFS(SD,"/Entering Training Mode.mp3");
             }
             else if (num == 7){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
+              audio.connecttoFS(SD,"/Move Glove for Calibration.mp3");
             }
             else if (num == 8){
-              audio.connecttoFS(SD,"/Shoot.mp3");
+              audio.connecttoFS(SD,"/Press Glove Button.mp3");
             }
             else if (num == 9){
-              audio.connecttoFS(SD,"/Shoot.mp3");
+              audio.connecttoFS(SD,"/Press Glove Button.mp3");
             }
             else if (num == 10){
               audio.connecttoFS(SD,"/Turn Left.mp3");
@@ -448,18 +448,48 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
               audio.connecttoFS(SD,"/Turn Right.mp3");
             }
             else if (num == 12){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
+              audio.connecttoFS(SD,"/Move Hand Forward.mp3");
             }
             else if (num == 13){
-              audio.connecttoFS(SD,"/Shoot.mp3");
+              audio.connecttoFS(SD,"/Move Hand Backward.mp3");
             }
             else if (num == 14){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
+              audio.connecttoFS(SD,"/Aim Higher.mp3");
             }
             else if (num == 15){
+              audio.connecttoFS(SD,"/Aim Lower.mp3");
+            }
+            else if (num == 16){
+              audio.connecttoFS(SD,"/Checking Glove Angle.mp3");
+            }
+            else if (num == 17){
+              audio.connecttoFS(SD,"/Glove Angle Correct.mp3");
+            }
+            else if (num == 18){
+              audio.connecttoFS(SD,"/Checking Glove Distance.mp3");
+            }
+            else if (num == 19){
+              audio.connecttoFS(SD,"/Glove Distance Correct.mp3");
+            }
+            else if (num == 20){
+              audio.connecttoFS(SD,"/Checking Cue Pitch.mp3");
+            }
+            else if (num == 21){
+              audio.connecttoFS(SD,"/Cue Stick Level.mp3");
+            }
+            else if (num == 22){
               audio.connecttoFS(SD,"/Shoot.mp3");
             }
-            else{
+            else if (num == 23){
+              audio.connecttoFS(SD,"/Nice Shot.mp3");
+            }
+            else if (num == 24){
+              audio.connecttoFS(SD,"/You Suck.mp3");
+            }
+            else if (num == 25){
+              audio.connecttoFS(SD,"/You're Blind.mp3");
+            }
+            else {
               Serial.println("Invalid audio input");
             }
         }
