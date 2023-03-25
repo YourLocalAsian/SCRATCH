@@ -19,8 +19,8 @@ def set_impaired():
     print("Asking if user is impaired\n")
 
     # play audio asking for impairness
-    # prompt = ASK_IMPAIRED
-    # Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.ASK_IMPAIRED.to_bytes(1, byteorder='big', signed = False))
+    time.sleep(2)
 
     # wait for button notification
     x = 0
@@ -34,14 +34,16 @@ def set_impaired():
 
     # play audio confirming choice
     if Settings.user_impaired:
-        #prompt = BLIND_SELECTED
+        prompt = Settings.BLIND_SELECTED
         Settings.HUD_mode_char.write_value(Settings.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
         print("User is impaired\n")
     else:
-        #prompt = NONBLIND_SELECTED
+        prompt = Settings.NONBLIND_SELECTED
         Settings.HUD_mode_char.write_value(Settings.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
         print("User is not impaired\n")
-    #Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    
+    Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    time.sleep(2)
 
     return
 
@@ -51,15 +53,15 @@ def set_operating_mode():
 
     if Settings.user_impaired == True: # only option when blind mode is game mode
         Settings.operation_mode = Settings.OperatingMode.GAME
-        #prompt = ENTERING_GM
-        #Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        Settings.HUD_audio_char.write_value(Settings.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
+        time.sleep(2)
         Settings.stick_fsm_char.write_value(Settings.StickStates.SET_BLD.to_bytes(1, byteorder='big', signed = False))
         return
     
     else:
         # play audio cue for selection
-        #prompt = SELECT_OP
-        #Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        Settings.HUD_audio_char.write_value(Settings.SELECT_OP.to_bytes(1, byteorder='big', signed = False))
+        time.sleep(2)
 
         # wait for button notification
         x = 0
@@ -70,6 +72,8 @@ def set_operating_mode():
                 #mode = 3 
                 #Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
                 print("Game Mode selected\n")
+                Settings.HUD_audio_char.write_value(Settings.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
+                time.sleep(2)
                 return
             time.sleep(1)
 
@@ -78,6 +82,8 @@ def set_operating_mode():
     Settings.operation_mode = Settings.OperatingMode.TRAINING
     print("Training Mode selected\n")
     Settings.stick_fsm_char.write_value(Settings.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
+    Settings.HUD_audio_char.write_value(Settings.ENTERING_TM.to_bytes(1, byteorder='big', signed = False))
+    time.sleep(2)
 
     return
 
@@ -323,8 +329,13 @@ def shot_attempt_bld(desired_angle, desired_strength):
 if __name__ == '__main__':
     print("Starting SCRATCH\n")
     connect_to_everything() # Connect to all peripherals
+    
+    while (not Settings.HUD_connected or not Settings.stick_connected or not Settings.glove_connected):
+        pass
     print(f"Successfully connected\n")
-    time.sleep(5)
+
+    Settings.HUD_audio_char.write_value(Settings.WELCOME.to_bytes(1, byteorder='big', signed = False)) # Welcome to SCRATCH
+    time.sleep(2)
 
     # Determine blind vs not blind
     set_impaired()
@@ -344,8 +355,8 @@ if __name__ == '__main__':
             print("Calling training_mode")
             training_mode(0, 0, 0)
         elif Settings.user_impaired == True:
-            print("Error - blind user cannot enter training mode")
+            print("ERROR - blind user cannot enter training mode")
     else:
-        print("Error - IDK how we got here")
+        print("ERROR - IDK how we got here")
 
     print("Finished")
