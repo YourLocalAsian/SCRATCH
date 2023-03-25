@@ -157,6 +157,8 @@ TAKE_SHOT = 22
 NICE_SHOT = 23
 MEAN_ONE = 24
 MEAN_TWO = 25
+CALIBRATE_CUE = 26
+CUE_CALIBRATED = 27
 
 # Blocking Flags
 new_glove_angle_received = False

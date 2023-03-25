@@ -493,6 +493,12 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
             else if (num == 25){
               audio.connecttoFS(SD,"/You're Blind.mp3");
             }
+            else if (num == 26){
+              audio.connecttoFS(SD,"/Calibrate Cue.mp3");
+            }
+            else if (num == 27){
+              audio.connecttoFS(SD,"/Cue Calibrated.mp3");
+            }
             else {
               Serial.println("Invalid audio input");
             }

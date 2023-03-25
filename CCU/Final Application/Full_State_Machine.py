@@ -57,6 +57,8 @@ def set_operating_mode():
         Settings.HUD_audio_char.write_value(Settings.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
         time.sleep(2)
         Settings.stick_fsm_char.write_value(Settings.StickStates.SET_BLD.to_bytes(1, byteorder='big', signed = False))
+        Settings.HUD_audio_char.write_value(Settings.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
+        time.sleep(5)
         return
     
     else:
@@ -73,8 +75,14 @@ def set_operating_mode():
                 #mode = 3 
                 #Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
                 print("Game Mode selected\n")
-                Settings.HUD_audio_char.write_value(Settings.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
+                Settings.HUD_audio_char.write_value(Settings.ENTERING_GM.to_bytes(1, byteorder='big', signed = False)) # Send game mode
                 time.sleep(2)
+                Settings.HUD_audio_char.write_value(Settings.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
+                time.sleep(8)
+                Settings.stick_fsm_char.write_value(Settings.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
+                time.sleep(2)
+                Settings.HUD_audio_char.write_value(Settings.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
+                time.sleep(5)
                 return
             time.sleep(1)
 
@@ -82,9 +90,14 @@ def set_operating_mode():
     #Settings.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? Also don't know why this one
     Settings.operation_mode = Settings.OperatingMode.TRAINING
     print("Training Mode selected\n")
-    Settings.stick_fsm_char.write_value(Settings.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
     Settings.HUD_audio_char.write_value(Settings.ENTERING_TM.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
+    Settings.HUD_audio_char.write_value(Settings.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
+    time.sleep(8)
+    Settings.stick_fsm_char.write_value(Settings.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
+    time.sleep(2)
+    Settings.HUD_audio_char.write_value(Settings.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
+    time.sleep(5)
 
     return
 
