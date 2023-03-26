@@ -1,6 +1,9 @@
-from BLE_Functions import *
-import Settings
+import sys
 import time
+sys.path.append("../Final_Application")
+import Final_Application.lib.constants as constants
+import Final_Application.lib.globals as globals
+from Final_Application.lib.BLE_Functions import *
 
 # Variables for holding received values
 glove_received_yaw = 0
@@ -35,7 +38,7 @@ def glove_on_new_yaw(iface, changed_props, invalidated_props):
     #print(f"Received the yaw value {glove_received_yaw}.")
 
     # Set flag that yaw received
-    Settings.new_glove_angle_received = True
+    globals.new_glove_angle_received = True
     
     return
 
@@ -62,7 +65,7 @@ def glove_on_new_distance(iface, changed_props, invalidated_props):
     #print(f"Received the distance value {glove_received_dist}.")
 
     # Set flag that dist received
-    Settings.new_glove_dist_received = True
+    globals.new_glove_dist_received = True
 
     return
 
@@ -72,19 +75,19 @@ def check_glove_zeroed():
     angle = 180
     debug_print = True
 
-    Settings.new_glove_angle_received = False # initialize flag
+    globals.new_glove_angle_received = False # initialize flag
 
-    while abs(angle) > Settings.ANGLE_THRESHOLD:
-        while (Settings.new_glove_angle_received == False): # block until new glove angle received
+    while abs(angle) > constants.ANGLE_THRESHOLD:
+        while (globals.new_glove_angle_received == False): # block until new glove angle received
             pass
         
         angle = glove_received_yaw
         
         # Send audio cue to zero out glove
-        prompt = Settings.ZERO_OUT_GLOVE
-        Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        prompt = constants.ZERO_OUT_GLOVE
+        globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
         time.sleep(2)
-        Settings.new_glove_angle_received = False # clear flag before proceeding
+        globals.new_glove_angle_received = False # clear flag before proceeding
 
     return # Only returns once glove has been zeroed out
 
@@ -93,10 +96,10 @@ def check_glove_angle(desired_angle):
     angle = 180
     debug_print = True
 
-    Settings.new_glove_angle_received = False # initialize flag
+    globals.new_glove_angle_received = False # initialize flag
 
-    while abs(angle - desired_angle) > Settings.ANGLE_THRESHOLD:
-        while (Settings.new_glove_angle_received == False): # block until new glove angle received
+    while abs(angle - desired_angle) > constants.ANGLE_THRESHOLD:
+        while (globals.new_glove_angle_received == False): # block until new glove angle received
             pass
         
         angle = glove_received_yaw
@@ -106,20 +109,20 @@ def check_glove_angle(desired_angle):
                 print("\t\tTurn hand left")
             
             # Send audio cue
-            prompt = Settings.TURN_LEFT
-            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = constants.TURN_LEFT
+            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
             time.sleep(2)
         else:
             if debug_print:
                 print("\t\tTurn hand right")
             
             # Send audio cue
-            prompt = Settings.TURN_RIGHT
-            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = constants.TURN_RIGHT
+            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
             time.sleep(2)
         
         time.sleep(1)
-        Settings.new_glove_angle_received = False # clear flag before proceeding
+        globals.new_glove_angle_received = False # clear flag before proceeding
     
     return # Only returns once angle is correct enough
 
@@ -128,33 +131,33 @@ def check_glove_distance():
     distance = 180
     debug_print = True
 
-    Settings.new_glove_dist_received = False # initialize flag
+    globals.new_glove_dist_received = False # initialize flag
     
-    while abs(distance - Settings.DESIRED_DISTANCE) > Settings.DISTANCE_THRESHOLD:
-        while (Settings.new_glove_dist_received == False): # block until new glove distance received
+    while abs(distance - constants.DESIRED_DISTANCE) > constants.DISTANCE_THRESHOLD:
+        while (globals.new_glove_dist_received == False): # block until new glove distance received
             pass
 
         distance = glove_received_dist
         
-        if (distance - Settings.DESIRED_DISTANCE) > Settings.DISTANCE_THRESHOLD:
+        if (distance - constants.DESIRED_DISTANCE) > constants.DISTANCE_THRESHOLD:
             if debug_print:
                 print("\t\tMove hand forward")
 
             # Send audio cue
-            prompt = Settings.MOVE_FORWARD
-            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = constants.MOVE_FORWARD
+            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
             time.sleep(2)
         else:
             if debug_print:
                 print("\t\tMove hand backward")
 
             # Send audio cue
-            prompt = Settings.MOVE_BACKWARD
-            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = constants.MOVE_BACKWARD
+            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
             time.sleep(2)
         
         time.sleep(1)
-        Settings.new_glove_dist_received = False # clear flag before proceeding
+        globals.new_glove_dist_received = False # clear flag before proceeding
 
     return # Only returns once distance is correct enough
 

@@ -1,12 +1,9 @@
-from BLE_Functions import *
-import Settings
-import struct
-import threading
-import time 
 import sys
-import random
 import cv2
 import numpy as np
+sys.path.append("../Final_Application")
+import Final_Application.lib.globals as globals
+from Final_Application.lib.BLE_Functions import *
 
 def comp_vision(image_path, final_image_name):
     # Read image from file path
@@ -161,11 +158,11 @@ def comp_vision(image_path, final_image_name):
             cv2.circle(cropped_image, (laser_x,laser_y),1, (0,255,0), -1)
             laser_x = (laser_x/(highX - lowX)* 30.0 - 15.0)//1.0
             laser_y = (-(laser_y/(highY - lowY)* 30.0) + 15.0)//1.0   
-            Settings.actual_x = int(laser_x)
-            Settings.actual_y = int(laser_y)
+            globals.actual_x = int(laser_x)
+            globals.actual_y = int(laser_y)
             print(f'The LASER coordinates are ({laser_x},{laser_y})')
             cv2.imwrite(final_image_name, cropped_image)
-            return (Settings.actual_x, Settings.actual_y)
+            return (globals.actual_x, globals.actual_y)
         else:
             print("No laser found. Trying brute force method")
             white_x_coordinates = []
@@ -184,9 +181,9 @@ def comp_vision(image_path, final_image_name):
                 print(f'The LASER coordinates are ({laser_x},{laser_y})')
                 cv2.circle(cropped_image, (laser_x,laser_y),1, (0,255,0), -1)
                 cv2.imwrite(final_image_name, cropped_image)
-                Settings.actual_x = laser_x
-                Settings.actual_y = laser_y
-                return (Settings.actual_x, Settings.actual_y)
+                globals.actual_x = laser_x
+                globals.actual_y = laser_y
+                return (globals.actual_x, globals.actual_y)
             else:
                 print('No laser found at all')
                 return (50,0)
@@ -210,51 +207,51 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
     
     # Append bytes in specific order
     if (len(value) > 7):
-        Settings.received_integers.append(value[7])
+        globals.received_integers.append(value[7])
     if (len(value) > 6):
-        Settings.received_integers.append(value[6])
+        globals.received_integers.append(value[6])
     if (len(value) > 5):
-        Settings.received_integers.append(value[5])
+        globals.received_integers.append(value[5])
     if (len(value) > 4):
-        Settings.received_integers.append(value[4])
+        globals.received_integers.append(value[4])
     if (len(value) > 3):
-        Settings.received_integers.append(value[3])
+        globals.received_integers.append(value[3])
     if (len(value) > 2):
-        Settings.received_integers.append(value[2])
+        globals.received_integers.append(value[2])
     if (len(value) > 1):
-        Settings.received_integers.append(value[1])
+        globals.received_integers.append(value[1])
     if (len(value) > 0):
-        Settings.received_integers.append(value[0])
+        globals.received_integers.append(value[0])
     if (len(value) > 15):
-        Settings.received_integers.append(value[15])
+        globals.received_integers.append(value[15])
     if (len(value) > 14):
-        Settings.received_integers.append(value[14])
+        globals.received_integers.append(value[14])
     if (len(value) > 13):
-        Settings.received_integers.append(value[13])
+        globals.received_integers.append(value[13])
     if (len(value) > 12):
-        Settings.received_integers.append(value[12])
+        globals.received_integers.append(value[12])
     if (len(value) > 11):
-        Settings.received_integers.append(value[11])
+        globals.received_integers.append(value[11])
     if (len(value) > 10):
-        Settings.received_integers.append(value[10])
+        globals.received_integers.append(value[10])
     if (len(value) > 9):
-        Settings.received_integers.append(value[9])
+        globals.received_integers.append(value[9])
     if (len(value) > 8):
-        Settings.received_integers.append(value[8])
+        globals.received_integers.append(value[8])
     if (len(value) > 19):
-        Settings.received_integers.append(value[19])
+        globals.received_integers.append(value[19])
     if (len(value) > 18):
-        Settings.received_integers.append(value[18])
+        globals.received_integers.append(value[18])
     if (len(value) > 17):
-        Settings.received_integers.append(value[17])
+        globals.received_integers.append(value[17])
     if (len(value) > 16):
-        Settings.received_integers.append(value[16])
+        globals.received_integers.append(value[16])
 
-    if (Settings.received_integers and bytes([Settings.received_integers[-1]]) == bytes([217]) and bytes([Settings.received_integers[-2]]) == bytes([255])):
-        with open(f"HUD_images/HUD_receiver_test_{Settings.image_counter}.jpeg", "wb") as fp:
-            for integer in Settings.received_integers:
+    if (globals.received_integers and bytes([globals.received_integers[-1]]) == bytes([217]) and bytes([globals.received_integers[-2]]) == bytes([255])):
+        with open(f"HUD_images/HUD_receiver_test_{globals.image_counter}.jpeg", "wb") as fp:
+            for integer in globals.received_integers:
                 fp.write(bytes([integer]))
         print("Done!")
-        comp_vision(f"HUD_images/HUD_receiver_test_{Settings.image_counter}.jpeg", f"HUD_images/HUD_receiver_test_contours_{Settings.image_counter}.jpeg")
-        Settings.received_integers = []
-        Settings.image_counter += 1
+        comp_vision(f"HUD_images/HUD_receiver_test_{globals.image_counter}.jpeg", f"HUD_images/HUD_receiver_test_contours_{globals.image_counter}.jpeg")
+        globals.received_integers = []
+        globals.image_counter += 1

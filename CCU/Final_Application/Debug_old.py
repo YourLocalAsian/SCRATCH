@@ -1,8 +1,8 @@
-from BLE_Functions import *
+from BLE_Functions_old import *
 import random
-import HUD_Receiver
-import Stick_Receiver
-import Glove_Receiver
+import HUD_Receiver_old as HUD_Receiver
+import Stick_Receiver_old as Stick_Receiver
+import Glove_Receiver_old as Glove_Receiver
 import Settings
 
 def help_info():

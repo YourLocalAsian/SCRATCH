@@ -1,6 +1,9 @@
-from BLE_Functions import *
-import Settings
+import sys
 import time
+sys.path.append("../Final_Application")
+import Final_Application.lib.constants as constants
+import Final_Application.lib.globals as globals
+from Final_Application.lib.BLE_Functions import *
 
 MAX_ACCELERATION = 1000
 mapArray = [-1, -3, -5, -7, -9]
@@ -38,7 +41,7 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
         number -= 4294967296
     
     # Store the acceleration values
-    Settings.stick_received_acceleration.append(number)
+    globals.stick_received_acceleration.append(number)
     #print(f"Received the acc value {number}.")
 
     return
@@ -94,7 +97,7 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
     #print(f"Received the pitch value {stick_received_pitch}.")
 
     # Set flag that pitch received 
-    Settings.new_stick_pitch_received = True
+    globals.new_stick_pitch_received = True
 
     return
 
@@ -144,7 +147,7 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     #print(f"Received the button value {stick_received_button}.")
 
     # Set flag that button received
-    Settings.new_stick_button_received = True
+    globals.new_stick_button_received = True
 
 def stick_on_new_fsm(iface, changed_props, invalidated_props):
     """
@@ -181,10 +184,10 @@ def check_stick_pitch():
     pitch = 180
     debug_print = True
 
-    Settings.new_stick_pitch_received = False # initialize flag
+    globals.new_stick_pitch_received = False # initialize flag
 
-    while abs(pitch) > Settings.ANGLE_THRESHOLD:
-        while (Settings.new_stick_pitch_received == False): # block until new stick pitch received
+    while abs(pitch) > constants.ANGLE_THRESHOLD:
+        while (globals.new_stick_pitch_received == False): # block until new stick pitch received
             pass
         
         pitch = stick_received_pitch
@@ -194,27 +197,27 @@ def check_stick_pitch():
                 print("\t\Tilt stick down")
                 time.sleep(1)
             # Send audio cue
-            prompt = Settings.AIM_LOWER
-            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = constants.AIM_LOWER
+            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
             time.sleep(2)
         else:
             if debug_print:
                 print("\t\tTilt stick up")
                 time.sleep(1)
             # Send audio cue
-            prompt = Settings.AIM_HIGHER
-            Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            prompt = constants.AIM_HIGHER
+            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
             time.sleep(2)
 
         time.sleep(1)
-        Settings.new_stick_pitch_received = False # clear flag before proceeding
+        globals.new_stick_pitch_received = False # clear flag before proceeding
 
     return
 
 def map_acceleration():
     # Find global minima
     minimum = MAX_ACCELERATION
-    for s in Settings.stick_received_acceleration:
+    for s in globals.stick_received_acceleration:
         if s < minimum:
             minimum = s
         else:
@@ -226,6 +229,6 @@ def map_acceleration():
         if minimum <= mapArray[i]:
             mapped = i 
     
-    Settings.stick_received_acceleration = [] # clear received_acceleration b.c shot is done
+    globals.stick_received_acceleration = [] # clear received_acceleration b.c shot is done
     
     return mapped
