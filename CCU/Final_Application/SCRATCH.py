@@ -22,10 +22,11 @@ def set_impaired():
     print("Asking if user is impaired\n")
 
     # play audio asking for impairness
-    globals.HUD_audio_char.write_value(globals.ASK_IMPAIRED.to_bytes(1, byteorder='big', signed = False))
+    globals.HUD_audio_char.write_value(constants.ASK_IMPAIRED.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     # wait for button notification
+    print("Checking operating mode")
     x = 0
     for x in range(5):
         if globals.new_stick_button_received:
@@ -37,15 +38,15 @@ def set_impaired():
 
     # play audio confirming choice
     if globals.user_impaired:
-        prompt = globals.BLIND_SELECTED
-        globals.HUD_mode_char.write_value(globals.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
+        prompt = constants.BLIND_SELECTED
+        globals.HUD_mode_char.write_value(constants.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
         print("User is impaired\n")
     else:
-        prompt = globals.NONBLIND_SELECTED
-        globals.HUD_mode_char.write_value(globals.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
+        prompt = constants.NONBLIND_SELECTED
+        globals.HUD_mode_char.write_value(constants.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
         print("User is not impaired\n")
     
-    globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+    #globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     return
@@ -56,7 +57,7 @@ def set_operating_mode():
 
     if globals.user_impaired == True: # only option when blind mode is game mode
         globals.operation_mode = constants.OperatingMode.GAME
-        globals.HUD_audio_char.write_value(constants.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
+        #globals.HUD_audio_char.write_value(constants.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
         time.sleep(2)
         globals.stick_fsm_char.write_value(constants.StickStates.SET_BLD.to_bytes(1, byteorder='big', signed = False))
         globals.HUD_audio_char.write_value(constants.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
@@ -65,36 +66,40 @@ def set_operating_mode():
     
     else:
         # play audio cue for selection
-        globals.HUD_audio_char.write_value(constants.SELECT_OP.to_bytes(1, byteorder='big', signed = False))
+        #globals.HUD_audio_char.write_value(constants.SELECT_OP.to_bytes(1, byteorder='big', signed = False))
         time.sleep(2)
+        print("Checking operating mode")
 
         # wait for button notification
         x = 0
         for x in range(5):
             if globals.new_stick_button_received:
-                globals.operation_mode = constants.OperatingMode.GAME
-                globals.new_stick_button_received = False
-                #mode = 3 
-                #globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
-                print("Game Mode selected\n")
-                globals.HUD_audio_char.write_value(constants.ENTERING_GM.to_bytes(1, byteorder='big', signed = False)) # Send game mode
-                time.sleep(2)
-                globals.HUD_audio_char.write_value(constants.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
+                mode = 4
+                globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? Also don't know why this one
+                globals.operation_mode = constants.OperatingMode.TRAINING
+                print("Training Mode selected\n")
+                #globals.HUD_audio_char.write_value(constants.ENTERING_TM.to_bytes(1, byteorder='big', signed = False))
+                time.sleep(4)
+                #globals.HUD_audio_char.write_value(constants.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
                 time.sleep(8)
                 globals.stick_fsm_char.write_value(constants.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
                 time.sleep(2)
                 globals.HUD_audio_char.write_value(constants.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
                 time.sleep(5)
+                
                 return
             time.sleep(1)
+            print(f"Second {x}")
 
-    #mode = 4
-    #globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? Also don't know why this one
-    globals.operation_mode = constants.OperatingMode.TRAINING
-    print("Training Mode selected\n")
-    globals.HUD_audio_char.write_value(constants.ENTERING_TM.to_bytes(1, byteorder='big', signed = False))
-    time.sleep(2)
-    globals.HUD_audio_char.write_value(constants.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
+    
+    globals.operation_mode = constants.OperatingMode.GAME
+    globals.new_stick_button_received = False
+    mode = 3 
+    globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
+    print("Game Mode selected\n")
+    #globals.HUD_audio_char.write_value(constants.ENTERING_GM.to_bytes(1, byteorder='big', signed = False)) # Send game mode
+    time.sleep(4)
+    #globals.HUD_audio_char.write_value(constants.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
     time.sleep(8)
     globals.stick_fsm_char.write_value(constants.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
@@ -229,8 +234,8 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     
     last_fsm_time = time.time() # * Store last time flag in callback was set
     while (Stick_Receiver.stick_received_fsm != constants.StickStates.TAKING_SHOT):
-        if (time.time() - last_fsm_time > 5): # check if fsm state has been received within the last 5s
-            print("ERROR - Stick FSM has not been received for 5s")
+        #if (time.time() - last_fsm_time > 5): # check if fsm state has been received within the last 5s
+        #   print("ERROR - Stick FSM has not been received for 5s")
         if (globals.new_stick_fsm_received):
             print(f"FSM: {Stick_Receiver.stick_received_fsm}")
             last_fsm_time = time.time()
@@ -263,6 +268,9 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     globals.HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
     globals.HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
     
+    while Stick_Receiver.stick_received_fsm != 0:
+        continue
+
     return
 
 def shot_attempt_bld(desired_angle, desired_strength):
@@ -279,7 +287,7 @@ def shot_attempt_bld(desired_angle, desired_strength):
 
     # Check if glove has been zeroed out
     globals.HUD_audio_char.write_value(constants.MOVE_FOR_CALIBRATION.to_bytes(1, byteorder='big', signed = False))
-    Glove_Receiver.check_glove_zeroed()
+    #Glove_Receiver.check_glove_zeroed()
     #globals.HUD_audio_char.write_value(globals.GLOVE_ZEROED_OUT.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
@@ -358,11 +366,21 @@ if __name__ == '__main__':
         connect_to_everything() # Connect to all peripherals
         
         while (not globals.HUD_connected or not globals.stick_connected or not globals.glove_connected):
-            pass
+            if not globals.HUD_connected:
+                print('HUD not connected')
+            if not globals.stick_connected:
+                print('stick not connected')
+            if not globals.glove_connected:
+                print('glove not connected')
+            time.sleep(1)
         print(f"Successfully connected\n")
 
-        globals.HUD_audio_char.write_value(constants.WELCOME.to_bytes(1, byteorder='big', signed = False)) # Welcome to SCRATCH
-        time.sleep(2)
+        while (globals.callbacks_set < 9):
+            #print(f"GCB: {globals.callbacks_set}")
+            time.sleep(1)
+
+        #globals.HUD_audio_char.write_value(constants.WELCOME.to_bytes(1, byteorder='big', signed = False)) # Welcome to SCRATCH
+        #time.sleep(2)
 
         # Determine blind vs not blind
         set_impaired()

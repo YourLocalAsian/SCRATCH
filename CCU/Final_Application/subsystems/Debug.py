@@ -1,11 +1,11 @@
 import sys
 import random
-import Stick_Receiver
-import Glove_Receiver
+import subsystems.Stick_Receiver as Stick_Receiver
+import subsystems.Glove_Receiver as Glove_Receiver
 sys.path.append("../Final_Application")
-import Final_Application.lib.constants as constants
-import Final_Application.lib.globals as globals
-from Final_Application.lib.BLE_Functions import *
+import lib.constants as constants
+import lib.globals as globals
+from lib.BLE_Functions import *
 
 def help_info():
     print("\nSCRATCH [Version 1.0]")

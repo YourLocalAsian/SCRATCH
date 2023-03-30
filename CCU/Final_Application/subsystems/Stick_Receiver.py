@@ -1,12 +1,12 @@
 import sys
 import time
 sys.path.append("../Final_Application")
-import Final_Application.lib.constants as constants
-import Final_Application.lib.globals as globals
-from Final_Application.lib.BLE_Functions import *
+import lib.constants as constants
+import lib.globals as globals
+from lib.BLE_Functions import *
 
 MAX_ACCELERATION = 1000
-mapArray = [-1, -3, -5, -7, -9]
+mapArray = [-2.5, -4.9, -10.6, -17.8, -25.1]
 ballSpeed = ["SOFT_TOUCH", "SLOW", "MEDIUM", "FAST", "POWER"]
 
 # Variables for holding received values
@@ -29,7 +29,8 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     value = changed_props.get('Value', None)
     #print(f'Value is {value}')
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - stick_on_new_acc")
+        globals.callbacks_set += 1
         return
     #TODO 
     number = int(value[3])
@@ -42,6 +43,7 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     
     # Store the acceleration values
     globals.stick_received_acceleration.append(number)
+    globals.callbacks_set += 1
     #print(f"Received the acc value {number}.")
 
     return
@@ -55,7 +57,8 @@ def stick_on_new_roll(iface, changed_props, invalidated_props):
     """
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - stick_on_new_roll")
+        globals.callbacks_set += 1
         return
 
     number = int(value[3])
@@ -69,6 +72,7 @@ def stick_on_new_roll(iface, changed_props, invalidated_props):
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
     #print(f"Received the roll value {int(number)}.")
+    
 
 def stick_on_new_pitch(iface, changed_props, invalidated_props):
     """
@@ -81,7 +85,8 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
 
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - stick_on_new_pitch")
+        globals.callbacks_set += 1
         return
 
     number = int(value[3])
@@ -110,7 +115,8 @@ def stick_on_new_yaw(iface, changed_props, invalidated_props):
     """
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - stick_on_new_yaw")
+        globals.callbacks_set += 1
         return
 
     number = int(value[3])
@@ -121,6 +127,7 @@ def stick_on_new_yaw(iface, changed_props, invalidated_props):
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
     #print(f"Received the yaw value {number}.")
+    globals.callbacks_set += 1
 
 def stick_on_new_button(iface, changed_props, invalidated_props):
     """
@@ -133,7 +140,8 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - stick_on_new_button")
+        globals.callbacks_set += 1
         return
 
     number = int(value[3])
@@ -144,7 +152,7 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     
     # Store distance value
     stick_received_button = number
-    #print(f"Received the button value {stick_received_button}.")
+    print(f"Received the button value {stick_received_button}.")
 
     # Set flag that button received
     globals.new_stick_button_received = True
@@ -160,7 +168,8 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
 
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - stick_on_new_fsm")
+        globals.callbacks_set += 1
         return
 
     number = int(value[3])
@@ -171,7 +180,7 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
     
     # Store FSM Value
     stick_received_fsm = number
-    print(f"Received the fsm value {stick_received_fsm}.")
+    #print(f"Received the fsm value {stick_received_fsm}.")
 
     # Set flag
     new_stick_fsm_received = True
@@ -180,15 +189,15 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
 
 # Checking functions
 def check_stick_pitch():
-    global stick_received_pitch
+    global stick_received_pitch, stick_received_fsm
     pitch = 180
     debug_print = True
 
     globals.new_stick_pitch_received = False # initialize flag
 
-    while abs(pitch) > constants.ANGLE_THRESHOLD:
+    while stick_received_fsm != 2:
         while (globals.new_stick_pitch_received == False): # block until new stick pitch received
-            pass
+            continue
         
         pitch = stick_received_pitch
         
@@ -199,7 +208,7 @@ def check_stick_pitch():
             # Send audio cue
             prompt = constants.AIM_LOWER
             globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(2)
+            #time.sleep(2)
         else:
             if debug_print:
                 print("\t\tTilt stick up")
@@ -207,7 +216,7 @@ def check_stick_pitch():
             # Send audio cue
             prompt = constants.AIM_HIGHER
             globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(2)
+            #time.sleep(2)
 
         time.sleep(1)
         globals.new_stick_pitch_received = False # clear flag before proceeding
@@ -223,12 +232,14 @@ def map_acceleration():
         else:
             minimum = minimum
     
+    minimum /= 100
+
     # Map acceleration to strength
     mapped = 0
-    for i in range(len(mapArray) - 1):
+    for i in range(5):
         if minimum <= mapArray[i]:
-            mapped = i 
+            mapped = i + 1
     
     globals.stick_received_acceleration = [] # clear received_acceleration b.c shot is done
-    
+    print(f"Minima: {minimum}, mapped: {mapped}")
     return mapped

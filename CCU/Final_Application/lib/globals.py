@@ -1,4 +1,4 @@
-from constants import OperatingMode
+from lib.constants import OperatingMode
 
 # BLE Connection Flages
 HUD_connected = False
@@ -52,3 +52,11 @@ VISION_notification_cb_set = False
 # CCU State Variables
 user_impaired = False
 operation_mode = OperatingMode.GAME
+
+# Blocking Flags
+new_glove_angle_received = False
+new_glove_dist_received = False
+new_stick_pitch_received = False
+new_stick_button_received = False
+new_stick_fsm_received = False
+callbacks_set = 0

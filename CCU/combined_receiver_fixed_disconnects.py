@@ -887,115 +887,115 @@ if __name__ == '__main__':
         while HUD_connected and stick_connected and glove_connected:
             print('All connected, doing stuff')
             time.sleep(3)
-            if (test ==0):
-                test += 1
-                mode = 2
-                HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
+            # if (test ==0):
+            #     test += 1
+            #     mode = 2
+            #     HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
 
-                time.sleep(1) #wait to simulate game mode selection SHOULD I MAKE THIS LONGER?
-                mode = 3
-                print("game mode")
-                HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
-                time.sleep(4)
+            #     time.sleep(1) #wait to simulate game mode selection SHOULD I MAKE THIS LONGER?
+            #     mode = 3
+            #     print("game mode")
+            #     HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
+            #     time.sleep(4)
 
                 
-                #init
-                state = 0
-                print('Setting state to 0')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     #init
+            #     state = 0
+            #     print('Setting state to 0')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
             
 
-                #send random power and poi numbers
-                #target
-                pow = random.randint(0,5)
-                poi_x = random.randint(-15, 15)
-                poi_y = random.randint(-15,15)
-                print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
-                HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
-                HUD_poi_x_char.write_value(poi_x.to_byt # if (test ==0):
-                test += 1
-                mode = 2
-                HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
+            #     #send random power and poi numbers
+            #     #target
+            #     pow = random.randint(0,5)
+            #     poi_x = random.randint(-15, 15)
+            #     poi_y = random.randint(-15,15)
+            #     print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+            #     HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+            #     HUD_poi_x_char.write_value(poi_x.to_byt # if (test ==0):
+            #     test += 1
+            #     mode = 2
+            #     HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
 
-                time.sleep(1) #wait to simulate game mode selection SHOULD I MAKE THIS LONGER?
-                mode = 3
-                print("game mode")
-                HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
-                time.sleep(4)
+            #     time.sleep(1) #wait to simulate game mode selection SHOULD I MAKE THIS LONGER?
+            #     mode = 3
+            #     print("game mode")
+            #     HUD_mode_char.write_value(mode.to_bytes(1,byteorder='big', signed=False))
+            #     time.sleep(4)
 
                 
-                #init
-                state = 0
-                print('Setting state to 0')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     #init
+            #     state = 0
+            #     print('Setting state to 0')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
             
 
-                #send random power and poi numbers
-                #target
-                pow = random.randint(0,5)
-                poi_x = random.randint(-15, 15)
-                poi_y = random.randint(-15,15)
-                print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
-                HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
-                HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
-                HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
-                time.sleep(3)
+            #     #send random power and poi numbers
+            #     #target
+            #     pow = random.randint(0,5)
+            #     poi_x = random.randint(-15, 15)
+            #     poi_y = random.randint(-15,15)
+            #     print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+            #     HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+            #     HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
+            #     HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
+            #     time.sleep(3)
                 
-                #cycle through states
-                state = 1
-                print('Setting state to 1')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(1)
-                state = 2
-                print('Setting state to 2')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(1)
-                state = 3
-                print('Setting state to 3')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(12) #should receive image
+            #     #cycle through states
+            #     state = 1
+            #     print('Setting state to 1')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     time.sleep(1)
+            #     state = 2
+            #     print('Setting state to 2')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     time.sleep(1)
+            #     state = 3
+            #     print('Setting state to 3')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     time.sleep(12) #should receive image
                 
-                #post shot feedback
-                state = 4
-                print('Setting state to 4')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                #time.sleep(3)
-                pow = random.randint(0,5)
-                poi_x = random.randint(-15, 15)
-                poi_y = random.randint(-15, 15)
-                print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
-                HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
-                HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
-                HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))es(4, byteorder='big', signed = True))
-                HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
-                time.sleep(3)
+            #     #post shot feedback
+            #     state = 4
+            #     print('Setting state to 4')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     #time.sleep(3)
+            #     pow = random.randint(0,5)
+            #     poi_x = random.randint(-15, 15)
+            #     poi_y = random.randint(-15, 15)
+            #     print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+            #     HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+            #     HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
+            #     HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))es(4, byteorder='big', signed = True))
+            #     HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
+            #     time.sleep(3)
                 
-                #cycle through states
-                state = 1
-                print('Setting state to 1')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(1)
-                state = 2
-                print('Setting state to 2')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(1)
-                state = 3
-                print('Setting state to 3')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(12) #should receive image
+            #     #cycle through states
+            #     state = 1
+            #     print('Setting state to 1')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     time.sleep(1)
+            #     state = 2
+            #     print('Setting state to 2')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     time.sleep(1)
+            #     state = 3
+            #     print('Setting state to 3')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     time.sleep(12) #should receive image
                 
-                #post shot feedback
-                state = 4
-                print('Setting state to 4')
-                HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
-                #time.sleep(3)
-                pow = random.randint(0,5)
-                poi_x = random.randint(-15, 15)
-                poi_y = random.randint(-15, 15)
-                print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
-                HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
-                HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
-                HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
+            #     #post shot feedback
+            #     state = 4
+            #     print('Setting state to 4')
+            #     HUD_fsm_char.write_value(state.to_bytes(1, byteorder='big', signed = False))
+            #     #time.sleep(3)
+            #     pow = random.randint(0,5)
+            #     poi_x = random.randint(-15, 15)
+            #     poi_y = random.randint(-15, 15)
+            #     print(f'Sending power, x and y to be {pow}, {poi_x}, {poi_y}')
+            #     HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
+            #     HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
+            #     HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
         if not HUD_connected:
             print('HUD not connected')
         if not stick_connected:

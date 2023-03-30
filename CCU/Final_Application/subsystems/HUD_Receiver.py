@@ -2,8 +2,8 @@ import sys
 import cv2
 import numpy as np
 sys.path.append("../Final_Application")
-import Final_Application.lib.globals as globals
-from Final_Application.lib.BLE_Functions import *
+import lib.globals as globals
+from lib.BLE_Functions import *
 
 def comp_vision(image_path, final_image_name):
     # Read image from file path
@@ -202,7 +202,8 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
 
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found!")
+        print("\'Value\' not found! - HUD_on_new_image")
+        globals.callbacks_set += 1
         return
     
     # Append bytes in specific order

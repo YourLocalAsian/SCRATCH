@@ -108,7 +108,7 @@ def check_glove_angle(desired_angle):
             # Send audio cue
             prompt = Settings.TURN_LEFT
             Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(2)
+            #time.sleep(2)
         else:
             if debug_print:
                 print("\t\tTurn hand right")
@@ -116,7 +116,7 @@ def check_glove_angle(desired_angle):
             # Send audio cue
             prompt = Settings.TURN_RIGHT
             Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(2)
+            #time.sleep(2)
         
         time.sleep(1)
         Settings.new_glove_angle_received = False # clear flag before proceeding
@@ -143,7 +143,7 @@ def check_glove_distance():
             # Send audio cue
             prompt = Settings.MOVE_FORWARD
             Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(2)
+            #time.sleep(2)
         else:
             if debug_print:
                 print("\t\tMove hand backward")
@@ -151,7 +151,7 @@ def check_glove_distance():
             # Send audio cue
             prompt = Settings.MOVE_BACKWARD
             Settings.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(2)
+            #time.sleep(2)
         
         time.sleep(1)
         Settings.new_glove_dist_received = False # clear flag before proceeding

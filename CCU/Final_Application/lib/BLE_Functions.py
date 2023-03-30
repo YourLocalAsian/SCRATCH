@@ -1,16 +1,16 @@
 
 import sys
 import time
-import constants
-import globals
+import lib.constants as constants
+import lib.globals as globals
 import threading
 
 from bluezero import adapter, central
 
 sys.path.append("../Final_Application")
-import Final_Application.subsystems.HUD_Receiver as HUD_Receiver
-import Final_Application.subsystems.Glove_Receiver as Glove_Receiver
-import Final_Application.subsystems.Stick_Receiver as Stick_Receiver
+import subsystems.HUD_Receiver as HUD_Receiver
+import subsystems.Glove_Receiver as Glove_Receiver
+import subsystems.Stick_Receiver as Stick_Receiver
 
 # Connection Functions
 def scan_for_devices(
@@ -143,6 +143,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             globals.stick_button_char.add_characteristic_cb(Stick_Receiver.stick_on_new_button)
             globals.stick_fsm_char.add_characteristic_cb(Stick_Receiver.stick_on_new_fsm)
             globals.stick_notification_cb_set = True
+            print("Stick callbacks done")
         
         try:
             # Startup in async mode to enable notify, etc
@@ -188,6 +189,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
         print('Invalid name in connect_and_run_function')
 
 def connect_to_HUD():
+    print("Scanning for HUD")
     devices = scan_for_devices(name='HUD')
     for dev in devices:
         if dev:
@@ -196,6 +198,7 @@ def connect_to_HUD():
             break
 
 def connect_to_glove():
+    print("Scanning for glove")
     devices = scan_for_devices(name='glove')
     for dev in devices:
         if dev:
@@ -204,11 +207,12 @@ def connect_to_glove():
             break
 
 def connect_to_stick():
+    print("Scanning for stick")
     devices = scan_for_devices(name='stick')
     for dev in devices:
         if dev:
             print("stick Found!")
-            bt_thread = globals.threading.Thread(target=connect_and_run, args=[dev, None,'stick'])
+            bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'stick'])
             bt_thread.start()
             print( f"The thread is {bt_thread}")
             break
@@ -247,7 +251,7 @@ def HUD_on_disconnect():
     #    continue
 
     #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for three seconds, then attemting to reconnect...")
+    print("Server disconnected. Sleeping for three seconds, then attempting to reconnect...")
     time.sleep(3)
     for dongle in adapter.Adapter.available():
         devices = None #central.Central.available(dongle.address)
@@ -285,7 +289,7 @@ def stick_on_disconnect():
     #    continue
 
     #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for three seconds, then attemting to reconnect...")
+    print("Server disconnected. Sleeping for three seconds, then attempting to reconnect...")
     time.sleep(3)
     for dongle in adapter.Adapter.available():
         devices = None #central.Central.available(dongle.address)
@@ -323,7 +327,7 @@ def glove_on_disconnect():
     #    continue
 
     #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for three seconds, then attemting to reconnect...")
+    print("Server disconnected. Sleeping for three seconds, then attempting to reconnect...")
     time.sleep(3)
     for dongle in adapter.Adapter.available():
         devices = None#central.Central.available(dongle.address)
