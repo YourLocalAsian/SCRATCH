@@ -28,14 +28,14 @@ The game of billiards, commonly known as pool, is enjoyed by millions of players
 1. Ensure that all peripherals are powered on and are laying flat on the table
 2. Navigate to the CCU Final Application folder
     ```sh
-    cd '.\CCU\Final Application\'
+    cd '.\CCU\Final_Application\'
 3. Run the main program with the debug flag
     ```sh
-    python3 .\Full_State_Machine.py --d
+    python3 .\SCRATCH --d
     ```
     or
     ```sh
-    python3 .\Full_State_Machine.py --debug
+    python3 .\SCRATCH --debug
     ```
 4. Use the on-screen menus to test each subsystem's functionality
 
@@ -46,10 +46,10 @@ The game of billiards, commonly known as pool, is enjoyed by millions of players
 3. Have them stand near the table with the cue stick lying flat on the table
 4. Navigate to the CCU Final Application folder
     ```sh
-    cd '.\CCU\Final Application\'
+    cd '.\CCU\Final_Application\'
 5. Run the main program without any arguments
     ```sh
-    python3 .\Full_State_Machine.py
+    python3 .\SCRATCH.py
     ```
 6. Follow the audio prompts played on the HUD to enter non-blind mode
 

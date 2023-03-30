@@ -3,6 +3,7 @@ import sys
 import time
 import constants
 import globals
+import threading
 
 from bluezero import adapter, central
 
@@ -85,11 +86,12 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             return
         
         globals.HUD_connected = True
-        globals.HUD_monitor.dongle.on_disconnect = HUD_on_disconnect
+        #globals.HUD_monitor.dongle.on_disconnect = HUD_on_disconnect
         print('HUD Connection successful!')
 
         # Enable heart rate notifications
         globals.HUD_image_char.start_notify()
+        print('notifications started for HUD')
 
         if not globals.HUD_notification_cb_set:
             print('Setting callback for notifications for HUD')
@@ -122,7 +124,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             print("Didn't connect to device!")
             return
         globals.stick_connected = True
-        globals.stick_monitor.dongle.on_disconnect = stick_on_disconnect
+        globals.stick_monitor.dongle.on_disconnect = on_disconnect
         print('Stick Connection successful!')
 
         globals.stick_roll_char.start_notify()
@@ -170,7 +172,7 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             print("Didn't connect to glove device!")
             return
         globals.glove_connected = True
-        globals.glove_monitor.dongle.on_disconnect = glove_on_disconnect
+        #globals.glove_monitor.dongle.on_disconnect = glove_on_disconnect
         print('Connection successful!')
 
         # Enable heart rate notifications
@@ -217,15 +219,24 @@ def connect_to_everything():
     connect_to_stick()
 
 # Disconnection Functions
-def HUD_on_disconnect(self):
+def on_disconnect(self):
+    if not globals.HUD_monitor.connected:
+        HUD_on_disconnect()
+    if not globals.glove_monitor.connected:
+        glove_on_disconnect()
+    if not globals.stick_monitor.connected:
+        stick_on_disconnect()
+
+def HUD_on_disconnect():
     """Disconnect from the remote device."""
     print('HUD Disconnected!')  
     print('Stopping notify')
-    for character in globals.HUD_monitor._characteristics:
-        character.stop_notify()  
+    globals.HUD_image_char.stop_notify()
+    # for character in HUD_monitor._characteristics:
+    #     character.stop_notify()  
     print('Disconnecting...')  
     globals.HUD_monitor.disconnect()   
-    #monitor.quit() #bt_thread should exit after this #commented out since only globals.stick_monitor will be running the glib loop
+    #monitor.quit() #bt_thread should exit after this #commented out since only stick_monitor will be running the glib loop
     
       
     #flag setting
@@ -236,25 +247,25 @@ def HUD_on_disconnect(self):
     #    continue
 
     #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
-    time.sleep(5)
+    print("Server disconnected. Sleeping for three seconds, then attemting to reconnect...")
+    time.sleep(3)
     for dongle in adapter.Adapter.available():
-        devices = central.Central.available(dongle.address)
+        devices = None #central.Central.available(dongle.address)
         while not devices:
             print("Cannot find server. Sleeping for 2s...")
             time.sleep(2)
             devices = scan_for_devices(name='HUD')
-            print('Found our device!')
+            #print('Found our device!')
         for dev in devices:
             if constants.HUD_SERVER_SRV.lower() in dev.uuids:
                 print('Found our device!')
-                connect_and_run(dev, 'HUD')
+                connect_and_run(dev, name='HUD')
                 #bt_thread.start()
                 #print(f"Just started thread {bt_thread}")
                 break
         break
 
-def stick_on_disconnect(self):
+def stick_on_disconnect():
     global bt_thread
     """Disconnect from the remote device."""
     print('STICK Disconnected!')  
@@ -265,6 +276,7 @@ def stick_on_disconnect(self):
     globals.stick_monitor.disconnect()   
     globals.stick_monitor.quit() #bt_thread should exit after this
     
+      
     #flag setting
     globals.stick_connected = False
     print( f"The thread is {bt_thread}")
@@ -273,25 +285,26 @@ def stick_on_disconnect(self):
     #    continue
 
     #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
-    time.sleep(5)
+    print("Server disconnected. Sleeping for three seconds, then attemting to reconnect...")
+    time.sleep(3)
     for dongle in adapter.Adapter.available():
-        devices = central.Central.available(dongle.address)
+        devices = None #central.Central.available(dongle.address)
         while not devices:
             print("Cannot find server. Sleeping for 2s...")
             time.sleep(2)
             devices = scan_for_devices(name='stick')
-            print('Found our device!')
+       # print('Found our device!')
         for dev in devices:
             if constants.STICK_SERVER_SRV.lower() in dev.uuids:
-                print('Found our device!')
-                bt_thread = globals.threading.Thread(target=connect_and_run, args=[dev, 'stick'])
+                #print('Found our device!')
+                bt_thread = threading.Thread(target=connect_and_run, args=[dev, 'stick'])
                 bt_thread.start()
                 print(f"Just started thread {bt_thread}")
                 break
         break
 
-def glove_on_disconnect(self):
+def glove_on_disconnect():
+    #global bt_thread
     """Disconnect from the remote device."""
     print('GLOVE Disconnected!')  
     print('Stopping notify')
@@ -310,19 +323,19 @@ def glove_on_disconnect(self):
     #    continue
 
     #Attempt to scan and reconnect
-    print("Server disconnected. Sleeping for five seconds, then attemting to reconnect...")
-    time.sleep(5)
+    print("Server disconnected. Sleeping for three seconds, then attemting to reconnect...")
+    time.sleep(3)
     for dongle in adapter.Adapter.available():
-        devices = central.Central.available(dongle.address)
+        devices = None#central.Central.available(dongle.address)
         while not devices:
             print("Cannot find server. Sleeping for 2s...")
             time.sleep(2)
             devices = scan_for_devices(name='glove') #TODO Change the scan function to accept what to scan for?
-            print('Found our device!')
+       # print('Found our device!')
         for dev in devices:
             if constants.GLOVE_SERVER_SRV.lower() in dev.uuids:
                 print('Found our device!')
-                connect_and_run(dev, 'glove')
+                connect_and_run(dev, name='glove')
                 #bt_thread.start()
                 #print(f"Just started thread {bt_thread}")
                 break
