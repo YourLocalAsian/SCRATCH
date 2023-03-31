@@ -44,6 +44,7 @@ int state = 0;
 Audio audio;
 bool audio_received = false;
 int audio_num = 50;
+int current_audio=500;
 
 //for the camera
 bool is_header = false;
@@ -508,7 +509,7 @@ void setup() {
     pAdvertising->addServiceUUID(SERVICE_UUID);
     BLEDevice::startAdvertising();
     Serial.println("Bluetooth Setup complete!");
-    delay(8000);
+    delay(500);
     Serial.println("Setting up SD card");
     //initial audio setup
     pinMode(SD_CS, OUTPUT);
@@ -529,28 +530,83 @@ void setup() {
             Serial.println("No connection detected");
             delay(1000);
         }
-    
-//    wait till we detect whether its blind mode or not
-    Serial.println("Before Nice shot");
-    Serial.println(audio.getAudioCurrentTime());
-    Serial.println(audio.getAudioFileDuration());
-    while(blind_mode == 0) {
-         audio.loop();
-    }
-    Serial.println("After Nice shot");
-    delay(5000);//wait to see if button is pressed
 
-    
-    //delay(2000);
+    audio.connecttoFS(SD, "/Welcome to Scratch.mp3");
+    audio.loop();
+    while(audio.isRunning()){
+      audio.loop();
+    }
+
+    Serial.println("waiting for blind mode prompt bluetooth");
+    while(audio_num != 1){
+      Serial.println(audio_num);
+      delay(500);
+    }
+    audio_num = false;
+
+    Serial.println("playing VIP");
+    audio.connecttoFS(SD, "/Visually Impaired Prompt.mp3");
+    audio.loop();
+    while(audio.isRunning()){
+      audio.loop();
+    }
+
+    Serial.println("Waiting for blind mode bluetooth");
+
+    while(blind_mode !=1 and blind_mode != 2){
+      Serial.println(blind_mode);
+      delay(500);
+    }
     
     if(blind_mode != 1) {
         //instruct the user to press stick buttons for game vs training mode (though from HUD perspective we dont care)
-        audio.connecttoFS(SD,"/Aim Higher.mp3");
+        audio.connecttoFS(SD,"/Press for Training Mode.mp3");
         Serial.println("Before shoot");
         while(blind_mode != 3 and blind_mode !=4) {
              audio.loop();
         }
          Serial.println("after shoot");
+
+        if (blind_mode == 3){
+            audio.connecttoFS(SD, "/Entering Game Mode.mp3");
+            audio.loop();
+            while(audio.isRunning()){
+              audio.loop();
+            }  
+            //calibration prompt
+            audio.connecttoFS(SD, "/Calibrate Cue.mp3");
+            while(audio_num != 27){
+              audio.loop();
+            }
+            audio_received = false;
+
+            //calibration done
+            audio.connecttoFS(SD, "/Cue Calibrated.mp3");
+            audio.loop();
+            while(audio.isRunning()){
+              audio.loop();
+            }
+        }
+        else {
+            audio.connecttoFS(SD, "/Entering Training Mode.mp3");
+            audio.loop();
+            while(audio.isRunning()){
+              audio.loop();
+            }  
+            //calibration prompt
+            audio.connecttoFS(SD, "/Calibrate Cue.mp3");
+            while(audio_num != 27){
+              audio.loop();
+            }
+            audio_received = false;
+
+            //calibration done
+            audio.connecttoFS(SD, "/Cue Calibrated.mp3");
+            audio.loop();
+            while(audio.isRunning()){
+              audio.loop();
+            }
+        }
       
         //turn off audio and SD card
         digitalWrite(SD_CS, HIGH);
@@ -603,7 +659,8 @@ void setup() {
          myCAM.OV2640_set_Special_effects(Normal);
          delay(1000);
          myCAM.clear_fifo_flag();
-         
+
+         Serial.println("Camera initialization completed. Initializing Display...");
          //initialize display
          Wire1.begin(DISP_SDA, DISP_SCL);
          //pdisplay = &display;
@@ -613,6 +670,27 @@ void setup() {
          }
           display.clearDisplay();
     }
+    else {
+          audio.connecttoFS(SD,"/Entering Blind Mode.mp3");
+          audio.loop();
+          while(audio.isRunning()){
+            audio.loop();
+          }  
+          
+          audio.connecttoFS(SD, "/Entering Game Mode.mp3");
+          audio.loop();
+          while(audio.isRunning()){
+            audio.loop();
+          }  
+    }
+    Serial.print("The audio_num is ");
+    Serial.println(audio_num);
+    Serial.print("The audio_received is ");
+    Serial.println(audio_received);
+    //reset this signal
+    audio_received = false;
+    audio_num = 50;
+    Serial.println("Setup complete!");
 }
 
 void loop() {
@@ -626,57 +704,97 @@ void loop() {
         
         if(audio_received) {
             audio_received = false;
-            if(audio_num == 0){
-              audio.connecttoFS(SD,"/Aim Higher.mp3");
+            if (audio_num != current_audio or !audio.isRunning())
+            {
+                  current_audio = audio_num;
+                  if (audio_num == 0){
+                    audio.connecttoFS(SD,"/Welcome to Scratch.mp3");
+                  }
+                  else if (audio_num == 1){
+                    audio.connecttoFS(SD,"/Visually Impaired Prompt.mp3");
+                  }
+                  else if (audio_num == 2){
+                    audio.connecttoFS(SD,"/Entering Blind Mode.mp3");
+                  }
+                  else if (audio_num == 3){
+                    audio.connecttoFS(SD,"/Entering Non-Impaired Mode.mp3");
+                  }
+                  else if (audio_num == 4){
+                    audio.connecttoFS(SD,"/Press for Training Mode.mp3");
+                  }
+                  else if (audio_num == 5){
+                    audio.connecttoFS(SD,"/Entering Game Mode.mp3");
+                  }
+                  else if (audio_num == 6){
+                    audio.connecttoFS(SD,"/Entering Training Mode.mp3");
+                  }
+                  else if (audio_num == 7){
+                    audio.connecttoFS(SD,"/Move Glove for Calibration.mp3");
+                  }
+                  else if (audio_num == 8){
+                    audio.connecttoFS(SD,"/Press Glove Button.mp3");
+                  }
+                  else if (audio_num == 9){
+                    audio.connecttoFS(SD,"/Press Glove Button.mp3");
+                  }
+                  else if (audio_num == 10){
+                    audio.connecttoFS(SD,"/Turn Left.mp3");
+                  }
+                  else if (audio_num == 11){
+                    audio.connecttoFS(SD,"/Turn Right.mp3");
+                  }
+                  else if (audio_num == 12){
+                    audio.connecttoFS(SD,"/Move Hand Forward.mp3");
+                  }
+                  else if (audio_num == 13){
+                    audio.connecttoFS(SD,"/Move Hand Backward.mp3");
+                  }
+                  else if (audio_num == 14){
+                    audio.connecttoFS(SD,"/Aim Higher.mp3");
+                  }
+                  else if (audio_num == 15){
+                    audio.connecttoFS(SD,"/Aim Lower.mp3");
+                  }
+                  else if (audio_num == 16){
+                    audio.connecttoFS(SD,"/Checking Glove Angle.mp3");
+                  }
+                  else if (audio_num == 17){
+                    audio.connecttoFS(SD,"/Glove Angle Correct.mp3");
+                  }
+                  else if (audio_num == 18){
+                    audio.connecttoFS(SD,"/Checking Glove Distance.mp3");
+                  }
+                  else if (audio_num == 19){
+                    audio.connecttoFS(SD,"/Glove Distance Correct.mp3");
+                  }
+                  else if (audio_num == 20){
+                    audio.connecttoFS(SD,"/Checking Cue Pitch.mp3");
+                  }
+                  else if (audio_num == 21){
+                    audio.connecttoFS(SD,"/Cue Stick Level.mp3");
+                  }
+                  else if (audio_num == 22){
+                    audio.connecttoFS(SD,"/Shoot.mp3");
+                  }
+                  else if (audio_num == 23){
+                    audio.connecttoFS(SD,"/Nice Shot.mp3");
+                  }
+                  else if (audio_num == 24){
+                    audio.connecttoFS(SD,"/You Suck.mp3");
+                  }
+                  else if (audio_num == 25){
+                    audio.connecttoFS(SD,"/You're Blind.mp3");
+                  }
+                  else if (audio_num == 26){
+                    audio.connecttoFS(SD,"/Calibrate Cue.mp3");
+                  }
+                  else if (audio_num == 27){
+                    audio.connecttoFS(SD,"/Cue Calibrated.mp3");
+                  }
+                  else {
+                    Serial.println("Invalid audio input");
+                  }
             }
-            else if (audio_num == 1){
-              audio.connecttoFS(SD,"/Aim Lower.mp3");
-            }
-            else if (audio_num == 2){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
-            }
-            else if (audio_num == 3){
-              audio.connecttoFS(SD,"/Move Hand Backward.mp3");
-            }
-            else if (audio_num == 4){
-              audio.connecttoFS(SD,"/Move Hand Forward.mp3");
-            }
-            else if (audio_num == 5){
-              audio.connecttoFS(SD,"/Move Hand Left.mp3");
-            }
-            else if (audio_num == 6){
-              audio.connecttoFS(SD,"/Move Hand Right.mp3");
-            }
-            else if (audio_num == 7){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
-            }
-            else if (audio_num == 8){
-              audio.connecttoFS(SD,"/Shoot.mp3");
-            }
-            else if (audio_num == 9){
-              audio.connecttoFS(SD,"/Shoot.mp3");
-            }
-            else if (audio_num == 10){
-              audio.connecttoFS(SD,"/Turn Left.mp3");
-            }
-            else if (audio_num == 11){
-              audio.connecttoFS(SD,"/Turn Right.mp3");
-            }
-            else if (audio_num == 12){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
-            }
-            else if (audio_num == 13){
-              audio.connecttoFS(SD,"/Shoot.mp3");
-            }
-            else if (audio_num == 14){
-              audio.connecttoFS(SD,"/Nice Shot.mp3");
-            }
-            else if (audio_num == 15){
-              audio.connecttoFS(SD,"/Shoot.mp3");
-            }
-            else{
-              Serial.println("Invalid audio input");
-            }  
         }
         
         audio.loop(); //Assuming the connectToFSD will be done in callback function
