@@ -1,5 +1,7 @@
 {
     "configuration": "PartitionScheme=default,FlashMode=qio,FlashFreq=80,UploadSpeed=921600,DebugLevel=none",
     "board": "esp32:esp32:esp32wrover",
-    "sketch": "cue_stick_app\\cue_stick_app.ino"
+    "sketch": "cue_stick_app\\cue_stick_app.ino",
+    "programmer": "esptool",
+    "port": "COM5"
 }

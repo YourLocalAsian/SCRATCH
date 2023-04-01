@@ -37,6 +37,17 @@ void loop() {
     } else if (fsmState == SET_BLD) {
         operationMode = BLIND_MODE;
         Serial.println("Blind Mode");
+    } else if (fsmState == SET_STANDBY) {
+        operationMode = STANDBY_MODE;
+        Serial.println("Standby Mode");
+    } else if (fsmState == 16) {
+        ccuReady = true;
+        Serial.println("CCU READY");
+        Serial.println("CCU READY");
+        Serial.println("CCU READY");
+        Serial.println("CCU READY");
+        Serial.println("CCU READY");
+        fsmState = 1;
     }
     
     switch(operationMode) {
