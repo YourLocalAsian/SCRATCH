@@ -45,13 +45,13 @@ def comp_vision(image_path, final_image_name):
             #get color of the center pixel, as well as four other pixels in the circle
             if  i[1] - i[2]//2 < 0:
                 i[2] = i[1] * 2
-                print('Forcing radius to {i[2]}')
+                #print('Forcing radius to {i[2]}')
             if i[0] + (i[2]//2) > 639:
                 i[2] = (639 - i[0]) * 2
-                print('Forcing radius to {i[2]}')
+                #print('Forcing radius to {i[2]}')
             if i[0] - i[2]//2 < 0:
                 i[2] = i[0] * 2
-                print('Forcing radius to {i[2]}')
+                #print('Forcing radius to {i[2]}')
             
             if i[0] < 0 or i[0] > 639 or i[1] < 0 or i[1] > 479:
                 continue
@@ -89,7 +89,7 @@ def comp_vision(image_path, final_image_name):
         y = 0
         radius = 0
         for i in potential_balls:
-            print(i)
+            #print(i)
             if i[1] > y:
                 x = i[0]
                 y = i[1]
@@ -102,16 +102,16 @@ def comp_vision(image_path, final_image_name):
         highY = y + (radius -3)
    
         if lowX < 0:
-            print('Forcing lowX to 0')
+            #print('Forcing lowX to 0')
             lowX = 0
         if highX > 639:
-            print('Forcing highX to 639')
+            #print('Forcing highX to 639')
             highX = 639
         if lowY < 0:
-            print('Forcing lowY to 0')
+            #print('Forcing lowY to 0')
             lowX = 0
         if highY > 479:
-            print('Forcing highY to 639')
+            #print('Forcing highY to 639')
             highX = 479
 
         print(f'The coordinates are {lowX}: {highX} and {lowY}: {highY}')
@@ -202,7 +202,7 @@ def HUD_on_new_image(iface, changed_props, invalidated_props):
 
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - HUD_on_new_image")
+        print("\tCallback - HUD_on_new_image set")
         globals.callbacks_set += 1
         return
     

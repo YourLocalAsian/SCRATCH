@@ -16,7 +16,7 @@ import subsystems.Stick_Receiver as Stick_Receiver
 def scan_for_devices(
         adapter_address=None,
         device_address=None,
-        timeout=5.0,
+        timeout=4.0,
         name = 'stick'):
     """
     Called to scan for BLE devices advertising the Heartrate Service UUID
@@ -51,7 +51,7 @@ def scan_for_devices(
                 print("Found a device with the SRV uuid. Yielding it...")
                 yield dev
 
-def connect_and_run(dev=None, device_address=None, name = 'stick'):
+def connect_and_run(dev=None, device_address=None, name = 'stick', debug=False):
     """
     Main function intneded to show usage of central.Central
     :param dev: Device to connect to if scan was performed
@@ -98,6 +98,12 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             globals.HUD_image_char.add_characteristic_cb(HUD_Receiver.HUD_on_new_image)
             globals.HUD_notification_cb_set = True
 
+        if debug:
+            try:
+            # Startup in async mode to enable notify, etc
+                globals.HUD_monitor.run()
+            except KeyboardInterrupt:
+                print("Disconnecting and exiting ...")
 
     elif name == 'stick':
         if globals.stick_monitor is None: #ADDED this IF
@@ -185,25 +191,40 @@ def connect_and_run(dev=None, device_address=None, name = 'stick'):
             globals.glove_yaw_char.add_characteristic_cb(Glove_Receiver.glove_on_new_yaw)
             globals.glove_distance_char.add_characteristic_cb(Glove_Receiver.glove_on_new_distance)
             globals.glove_notification_cb_set = True
+        
+        if debug:
+            try:
+            # Startup in async mode to enable notify, etc
+                globals.glove_monitor.run()
+            except KeyboardInterrupt:
+                print("Disconnecting and exiting ...")
     else:
         print('Invalid name in connect_and_run_function')
 
-def connect_to_HUD():
+def connect_to_HUD(debug=False):
     print("Scanning for HUD")
     devices = scan_for_devices(name='HUD')
     for dev in devices:
         if dev:
             print("HUD Found!")
-            connect_and_run(dev=dev,name='HUD')
+            if debug:
+                bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
+                bt_thread.start()
+            else:
+                connect_and_run(dev=dev,name='HUD',debug=debug)
             break
 
-def connect_to_glove():
+def connect_to_glove(debug=False):
     print("Scanning for glove")
     devices = scan_for_devices(name='glove')
     for dev in devices:
         if dev:
             print("glove Found!")
-            connect_and_run(dev=dev,name='glove')
+            if debug:
+                bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
+                bt_thread.start()
+            else:
+                connect_and_run(dev=dev,name='glove',debug=debug)
             break
 
 def connect_to_stick():
@@ -214,13 +235,17 @@ def connect_to_stick():
             print("stick Found!")
             bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'stick'])
             bt_thread.start()
-            print( f"The thread is {bt_thread}")
+            #print( f"The thread is {bt_thread}")
             break
 
 def connect_to_everything():
-    connect_to_HUD()
-    connect_to_glove()
-    connect_to_stick()
+    try:
+        connect_to_HUD()
+        connect_to_glove()
+        connect_to_stick()
+    except adapter.dbus.DBusException:
+        print("Caught DBus Exception, callling on_disconnect")
+        on_disconnect(globals.stick_monitor) 
 
 # Disconnection Functions
 def on_disconnect(self):
@@ -283,7 +308,7 @@ def stick_on_disconnect():
       
     #flag setting
     globals.stick_connected = False
-    print( f"The thread is {bt_thread}")
+    #print( f"The thread is {bt_thread}")
 
     #while (bt_thread.is_alive()):
     #    continue

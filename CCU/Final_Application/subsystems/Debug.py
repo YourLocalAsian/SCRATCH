@@ -35,7 +35,7 @@ def debug_menu():
             debug_glove()
         elif (val == '4'):
             print("Exiting SCRATCH... goodbye")
-            return
+            sys.exit()
         else:
             print("ERROR - Invalid selection\n")
             
@@ -50,7 +50,7 @@ def debug_menu():
 
 # HUD Debug Functions
 def debug_HUD():
-    connect_to_HUD() 
+    connect_to_HUD(debug=True)
 
     while (not globals.HUD_connected):
         time.sleep(1)
@@ -74,10 +74,11 @@ def debug_HUD():
         else:
             print("ERROR - Invalid selection\n")
         
-        print("\nCue Stick Selection:")
-        print("1. IMU")
-        print("2. Buttons")
-        print("3. Go back to main menu")
+        print("\nHUD Selection:")
+        print("1. Display")
+        print("2. Audio")
+        print("3. Camera")
+        print("4. Go back to main menu")
         val = input("\nSelection: ")
 
 def test_display():
@@ -125,6 +126,18 @@ def test_audio():
         return
 
 def test_camera():
+    print("Initializing HUD")
+    globals.HUD_audio_char.write_value(constants.ASK_IMPAIRED.to_bytes(1, byteorder='big', signed = False))
+    print("Sleeping for 5s")
+    time.sleep(5)
+    globals.HUD_mode_char.write_value(constants.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
+    print("Set non-blind mode, sleeping for 8s")
+    time.sleep(8)
+    mode = 3 
+    globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
+    print("Entering game mode for testing, sleeping for 4s")
+    time.sleep(4)
+    globals.HUD_audio_char.write_value(constants.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
     print("Press Ctrl+C to exit testing")
     time.sleep(2)
 
@@ -148,7 +161,8 @@ def test_camera():
             #cycle through states
             print("Triggering picture capture")
             globals.HUD_fsm_char.write_value(constants.HudStates.TAKE_PICTURE.to_bytes(1, byteorder='big', signed = False))
-            time.sleep(8) #should receive image
+            print("Sleeping for 12s")
+            time.sleep(12) #should receive image
             
             #post shot feedback
             pow = random.randint(0,5)
@@ -225,10 +239,9 @@ def test_IMU_acceleration():
     time.sleep(2)
     try:
         while True:
-            print(f"Acceleration: {Stick_Receiver.stick_received_acc}")
+            print(f"Acceleration: {Stick_Receiver.stick_received_acc / 100}")
             if (Stick_Receiver.stick_received_fsm == constants.StickStates.SHOT_TAKEN): # unblock stick FSM
                 print("STICK STUCK - Press A to continue")
-            time.sleep(0.25)
     except KeyboardInterrupt:
         return
 
@@ -251,6 +264,7 @@ def test_buttons():
         while True:
             if (globals.new_stick_button_received):
                 print(f"Button: {Stick_Receiver.stick_received_button}")
+                globals.new_stick_button_received = False
             time.sleep(0.25)
     except KeyboardInterrupt:
         return

@@ -60,3 +60,7 @@ new_stick_pitch_received = False
 new_stick_button_received = False
 new_stick_fsm_received = False
 callbacks_set = 0
+
+# Demo Variables
+demo_mode = False
+demo_counter = 0

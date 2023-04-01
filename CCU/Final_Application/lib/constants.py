@@ -22,6 +22,7 @@ class StickStates(IntEnum):
     PAUSED = 5
     SET_NON = 6
     SET_BLD = 7
+    SET_SB = 8
 
 class HudStates(IntEnum):
     INITIAL = 0
@@ -61,8 +62,8 @@ ANGLE_CHAR_UUID = '' # TODO
 STRENGTH_CHAR_UUID = '' # TODO
 
 # Blind Shot Mode Constants
-ANGLE_THRESHOLD = 3.0
-DESIRED_DISTANCE = 1.0
+ANGLE_THRESHOLD = 1.0
+DESIRED_DISTANCE = 12.0
 DISTANCE_THRESHOLD = 1.0
 
 # Prompt Numbers
@@ -94,3 +95,9 @@ MEAN_ONE = 24
 MEAN_TWO = 25
 CALIBRATE_CUE = 26
 CUE_CALIBRATED = 27
+
+# Cherry-Picked Shots
+X_ARRAY = [  0, -12,  8]
+Y_ARRAY = [-10,   2, -5]
+A_ARRAY = [-12,  21,  0]
+S_ARRAY = [  1,   2,  3]

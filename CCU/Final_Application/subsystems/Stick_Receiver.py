@@ -25,11 +25,12 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
     :param changed_props: updated properties for this event, contains Value
     :param invalidated_props: dvus advanced data
     """
-    
+    global stick_received_acc
+
     value = changed_props.get('Value', None)
     #print(f'Value is {value}')
     if not value:
-        print("\'Value\' not found! - stick_on_new_acc")
+        print("\tCallback - stick_on_new_acc set")
         globals.callbacks_set += 1
         return
     #TODO 
@@ -42,8 +43,8 @@ def stick_on_new_acc(iface, changed_props, invalidated_props):
         number -= 4294967296
     
     # Store the acceleration values
-    globals.stick_received_acceleration.append(number)
-    globals.callbacks_set += 1
+    globals.stick_received_acceleration.append(-number)
+    stick_received_acc = -number
     #print(f"Received the acc value {number}.")
 
     return
@@ -57,7 +58,7 @@ def stick_on_new_roll(iface, changed_props, invalidated_props):
     """
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - stick_on_new_roll")
+        print("\tCallback - stick_on_new_roll set")
         globals.callbacks_set += 1
         return
 
@@ -72,7 +73,8 @@ def stick_on_new_roll(iface, changed_props, invalidated_props):
     if (number > 1000000): #ASK LUKE
         number -= 4294967296
     #print(f"Received the roll value {int(number)}.")
-    
+
+    return 
 
 def stick_on_new_pitch(iface, changed_props, invalidated_props):
     """
@@ -85,7 +87,7 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
 
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - stick_on_new_pitch")
+        print("\tCallback - stick_on_new_pitch set")
         globals.callbacks_set += 1
         return
 
@@ -98,7 +100,7 @@ def stick_on_new_pitch(iface, changed_props, invalidated_props):
         number -= 4294967296
     
     # Store pitch value
-    stick_received_pitch = number
+    stick_received_pitch = -number
     #print(f"Received the pitch value {stick_received_pitch}.")
 
     # Set flag that pitch received 
@@ -115,7 +117,7 @@ def stick_on_new_yaw(iface, changed_props, invalidated_props):
     """
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - stick_on_new_yaw")
+        print("\tCallback - stick_on_new_yaw set")
         globals.callbacks_set += 1
         return
 
@@ -129,6 +131,8 @@ def stick_on_new_yaw(iface, changed_props, invalidated_props):
     #print(f"Received the yaw value {number}.")
     globals.callbacks_set += 1
 
+    return
+
 def stick_on_new_button(iface, changed_props, invalidated_props):
     """
     Callback used to receive notification events from the device.
@@ -140,7 +144,7 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - stick_on_new_button")
+        print("\tCallback - stick_on_new_button set")
         globals.callbacks_set += 1
         return
 
@@ -152,10 +156,12 @@ def stick_on_new_button(iface, changed_props, invalidated_props):
     
     # Store distance value
     stick_received_button = number
-    print(f"Received the button value {stick_received_button}.")
+    #print(f"Received the button value {stick_received_button}.")
 
     # Set flag that button received
     globals.new_stick_button_received = True
+
+    return
 
 def stick_on_new_fsm(iface, changed_props, invalidated_props):
     """
@@ -168,7 +174,7 @@ def stick_on_new_fsm(iface, changed_props, invalidated_props):
 
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - stick_on_new_fsm")
+        print("\tCallback - stick_on_new_fsm set")
         globals.callbacks_set += 1
         return
 
@@ -195,11 +201,13 @@ def check_stick_pitch():
 
     globals.new_stick_pitch_received = False # initialize flag
 
-    while stick_received_fsm != 2:
+    while abs(stick_received_pitch) > constants.ANGLE_THRESHOLD:
         while (globals.new_stick_pitch_received == False): # block until new stick pitch received
-            continue
+            print(f"Waiting for pitch, FSM: {stick_received_fsm}, sleeping for 0.25")
+            time.sleep(0.25)
         
         pitch = stick_received_pitch
+        print(f"Pitch: {pitch}")
         
         if pitch > 0:
             if debug_print:

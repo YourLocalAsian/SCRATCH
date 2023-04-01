@@ -21,7 +21,7 @@ def glove_on_new_yaw(iface, changed_props, invalidated_props):
     
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - glove_on_new_yaw")
+        print("\tCallback - glove_on_new_yaw set")
         globals.callbacks_set += 1
         return
 
@@ -54,7 +54,7 @@ def glove_on_new_distance(iface, changed_props, invalidated_props):
     
     value = changed_props.get('Value', None)
     if not value:
-        print("\'Value\' not found! - glove_on_new_distance")
+        print("\tCallback - glove_on_new_distance set")
         globals.callbacks_set += 1
         return
 
@@ -141,6 +141,7 @@ def check_glove_distance():
             pass
 
         distance = glove_received_dist
+        print(f"Received {distance}, want {constants.DESIRED_DISTANCE}")
         
         if (distance - constants.DESIRED_DISTANCE) > constants.DISTANCE_THRESHOLD:
             if debug_print:
