@@ -704,8 +704,11 @@ void loop() {
         
         if(audio_received) {
             audio_received = false;
+            
             if (audio_num != current_audio or !audio.isRunning())
             {
+                  Serial.print("In the main loop. Audio num is ");
+                  Serial.println(audio_num);
                   current_audio = audio_num;
                   if (audio_num == 0){
                     audio.connecttoFS(SD,"/Welcome to Scratch.mp3");
