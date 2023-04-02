@@ -58,9 +58,9 @@ bool printPitch;
 bool printYaw;
 
 // Mapping arrays
-const int mapArray[7] = {-2, -5, -11, -18, -25, -30, -35};
+const int mapArray[5] = {-2, -5, -11, -18, -25};
 String ballSpeed[] = {"SOFT_TOUCH", "SLOW", "MEDIUM", 
-                            "FAST", "POWER", "BREAK", "POWER_BREAK"};
+                            "FAST", "POWER"};
 enum fsmStates      {NOT_READY, READY, WAITING, TAKING_SHOT, SHOT_TAKEN, PAUSED, SET_NON, SET_BLD, SET_STANDBY};
 String stateMap[] = {"NOT_READY", "READY", "WAITING", "TAKING SHOT", "SHOT TAKEN", "PAUSED"};
 
@@ -342,7 +342,7 @@ double findGlobalMinima(Vector<double> accelerationValues) {
 // Maps acceleration to meaningful value
 int mapAcceleration(double acceleration) {
     int mapped = 0;
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < 5; i++)
         if ((int) acceleration <= mapArray[i]) mapped = i;
     
     return mapped;
