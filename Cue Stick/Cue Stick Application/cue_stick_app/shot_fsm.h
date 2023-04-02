@@ -191,6 +191,8 @@ void fsmLoop() {
         // User button press indicates they are ready to shoot
         if (checkButton(buttonA)) {
             userReady = true;
+            Serial.println("Allowing user to adjust hand placement... sleeping for 2s")
+            delay(2000);
         }
         
     }
