@@ -42,38 +42,38 @@ void loop() {
         Serial.println("Standby Mode");
     } else if (fsmState == 16) {
         ccuReady = true;
-        Serial.println("CCU READY");
-        Serial.println("CCU READY");
-        Serial.println("CCU READY");
-        Serial.println("CCU READY");
-        Serial.println("CCU READY");
-        fsmState = 1;
+        //Serial.println("CCU READY");
+        //Serial.println("CCU READY");
+        //Serial.println("CCU READY");
+        //Serial.println("CCU READY");
+        //Serial.println("CCU READY");
+        fsmState = READY;
     }
     
     switch(operationMode) {
         case STANDBY_MODE: {// CCU hasn't configured yet
             if (checkButton(buttonUp)) {
-                Serial.println("U");
+                Serial.println("User pressed Up");
                 updateCharacteristic(buttonCharacteristic, UP); // Send CCU yes
             }
             if (checkButton(buttonDown)) {
-                Serial.println("D");
+                Serial.println("User pressed Down");
                 updateCharacteristic(buttonCharacteristic, DOWN); // Send CCU yes
             }
             if (checkButton(buttonLeft)) {
-                Serial.println("L");
+                Serial.println("User pressed Left");
                 updateCharacteristic(buttonCharacteristic, LEFT); // Send CCU yes
             }
             if (checkButton(buttonRight)) {
-                Serial.println("R");
+                Serial.println("User pressed Right");
                 updateCharacteristic(buttonCharacteristic, RIGHT); // Send CCU yes
             }
             if (checkButton(buttonA)) {
-                Serial.println("Y");
+                Serial.println("User pressed A");
                 updateCharacteristic(buttonCharacteristic, A); // Send CCU yes
             } 
             if (checkButton(buttonB)) {
-                Serial.println("N");
+                Serial.println("User pressed B");
                 updateCharacteristic(buttonCharacteristic, B); // Send CCU no
             }
             break;
@@ -89,14 +89,9 @@ void loop() {
             break;
         }
         
-        case DEBUG_MODE: {
-            Serial.println("TBD");
-            break;
-        }
-
         default: {
-            Serial.println("IDK HOW YOU GOT HERE");
-            fsmState = DEBUG_MODE;
+            Serial.println("ERROR - IDK HOW YOU GOT HERE");
+            operationMode = STANDBY_MODE;
             break;
         }
     }   

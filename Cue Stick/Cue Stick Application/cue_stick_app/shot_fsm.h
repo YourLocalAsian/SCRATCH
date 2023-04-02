@@ -165,22 +165,22 @@ void fsmLoop() {
         avgAcceleration = ((accelerationVector.x() - calibrationData[0]) + oldAcceleration) / 2; //  Smooth accleration value
         checkStationary(avgAcceleration); // Check if stick is stationary
 
-        // FSM
+        // True FSM
         if (!isStationary && !shotReady) { // State 0: Not stationary, not ready to take shot
             fsmState = 0;
-        } else if (isStationary && userReady && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
+        } else if (fsmState == 0 && isStationary && userReady && !shotReady) { // State 1: Stationary, not ready to take shot -> ready to take shot
             accelerationBase = avgAcceleration;
             floodStationary(avgAcceleration);
             globalMinima = avgAcceleration;
             shotReady = true;
             fsmState = 1;
-        } else if (isStationary && shotReady && accelerationValues.empty()) { // State 2: Stationary, ready to take shot, hasn't moved -> wait for shot
+        } else if (fsmState == 1 && isStationary && shotReady && accelerationValues.empty()) { // State 2: Stationary, ready to take shot, hasn't moved -> wait for shot
             fsmState = 2;
-        } else if (!isStationary && shotReady) { // State 3: Not stationary, ready to take shot (taking shot) -> self
+        } else if (fsmState == 2 && !isStationary && shotReady) { // State 3: Not stationary, ready to take shot (taking shot) -> self
             double pushedValue = avgAcceleration - accelerationBase;
             accelerationValues.push_back(pushedValue);
             fsmState = 3;
-        } else if (isStationary && shotReady && !accelerationValues.empty()) {  // State 4: Stationary, ready to take shot (done taking shot) -> reset
+        } else if (fsmState == 3 && isStationary && shotReady && !accelerationValues.empty()) {  // State 4: Stationary, ready to take shot (done taking shot) -> reset
             for (int i = 0; i < 9; i++) accelerationValues.pop_back();
             floodStationary();
             shotAttempt = true;
