@@ -13,49 +13,47 @@ import subsystems.Debug as Debug
 # User Set Up Functions
 def set_impaired():
     while (not globals.HUD_connected or not globals.stick_connected):
-        time.sleep(1)
         if not globals.HUD_connected:
-            print("HUD is not connected")
+            print("Please wait - HUD is not connected")
         if not globals.stick_connected:
-            print("Stick is not connected")
-    
-    print("Asking if user is impaired\n")
+            print("Please wait - Stick is not connected")
+        time.sleep(1)
 
     # play audio asking for impairness
     globals.HUD_audio_char.write_value(constants.ASK_IMPAIRED.to_bytes(1, byteorder='big', signed = False))
-    print("Checking impairedness:")
-    time.sleep(2)
+    print("\tChecking if user is impaired:")
     x = 0
     for x in range(5):
         if globals.new_stick_button_received:
             globals.user_impaired = True
             globals.new_stick_button_received = False
             break
-        time.sleep(1)
         print(f"\tSecond {x}")
+        time.sleep(1)   
 
     # play audio confirming choice
     if globals.user_impaired:
-        prompt = constants.BLIND_SELECTED
         globals.HUD_mode_char.write_value(constants.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
         print("Selection - User is impaired\n")
     else:
-        prompt = constants.NONBLIND_SELECTED
         globals.HUD_mode_char.write_value(constants.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
         print("Selection - User is not impaired\n")
     
-    #globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
     time.sleep(2)
 
     return
 
 def set_operating_mode():
+    # Wait for HUD and stick to be connected
     while (not globals.HUD_connected or not globals.stick_connected):
-        continue
+        if not globals.HUD_connected:
+            print("Please wait - HUD is not connected")
+        if not globals.stick_connected:
+            print("Please wait - Stick is not connected")
+        time.sleep(1)
 
     if globals.user_impaired == True: # only option when blind mode is game mode
         globals.operation_mode = constants.OperatingMode.GAME
-        #globals.HUD_audio_char.write_value(constants.ENTERING_GM.to_bytes(1, byteorder='big', signed = False))
         time.sleep(2)
         globals.stick_fsm_char.write_value(constants.StickStates.SET_BLD.to_bytes(1, byteorder='big', signed = False))
         globals.HUD_audio_char.write_value(constants.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
@@ -63,12 +61,9 @@ def set_operating_mode():
         return
     
     else:
-        # play audio cue for selection
-        #globals.HUD_audio_char.write_value(constants.SELECT_OP.to_bytes(1, byteorder='big', signed = False))
-        time.sleep(2)
+        # wait for user selection
         print("Checking operating mode:")
-
-        # wait for button notification
+        time.sleep(2)  
         x = 0
         for x in range(5):
             if globals.new_stick_button_received:
@@ -83,13 +78,12 @@ def set_operating_mode():
                 globals.stick_fsm_char.write_value(constants.StickStates.SET_NON.to_bytes(1, byteorder='big', signed = False))
                 time.sleep(2)
                 globals.HUD_audio_char.write_value(constants.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
-                time.sleep(5)
-                
+                time.sleep(5)    
                 return
-            time.sleep(1)
+            
             print(f"\tSecond {x}")
-
-    
+            time.sleep(1)
+            
     globals.operation_mode = constants.OperatingMode.GAME
     globals.new_stick_button_received = False
     mode = 3 
@@ -372,16 +366,15 @@ if __name__ == '__main__':
         
         while (not globals.HUD_connected or not globals.stick_connected or not globals.glove_connected):
             if not globals.HUD_connected:
-                print('HUD not connected')
+                print('Please wait - HUD not connected')
             if not globals.stick_connected:
-                print('stick not connected')
+                print('Please wait - Stick not connected')
             if not globals.glove_connected:
-                print('glove not connected')
+                print('Please wait - Glove not connected')
             time.sleep(1)
         print(f"Successfully connected\n")
 
         while (globals.callbacks_set < 9):
-            #print(f"GCB: {globals.callbacks_set}")
             time.sleep(1)
         
         globals.stick_fsm_char.write_value(constants.StickStates.SET_SB.to_bytes(1, byteorder='big', signed = False))
