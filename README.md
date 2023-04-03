@@ -6,12 +6,12 @@
 <br />
 <div align="center">
   <a href="https://github.com/YourLocalAsian/SCRATCH">
-    <img src="Jing Poolian.png" alt="Logo" width="320" height="180">
+    <img src="Jing Poolian.png" alt="Logo" width="350" height="200">
   </a>
 
 <h1 align="center">SCRATCH</h1>
 <h2 align="center">Shot Consultation and Refinement Applied Through Computer Hardware</h2>
-<h3><a href="https://www.youtube.com/playlist?list=PLlgu_g88BshhSsnBhApKZGy7s1Rak5IEG">View YouTube Playlist</a></h3>
+<h4><a href="https://www.youtube.com/playlist?list=PLlgu_g88BshhSsnBhApKZGy7s1Rak5IEG">View YouTube Playlist</a></h3>
 </br>
 </div>
 
@@ -24,21 +24,6 @@ The game of billiards, commonly known as pool, is enjoyed by millions of players
 
 # Usage
 
-## Debug Mode
-1. Ensure that all peripherals are powered on and are laying flat on the table
-2. Navigate to the CCU Final Application folder
-    ```sh
-    cd '.\CCU\Final_Application\'
-3. Run the main program with the debug flag
-    ```sh
-    python3 .\SCRATCH --d
-    ```
-    or
-    ```sh
-    python3 .\SCRATCH --debug
-    ```
-4. Use the on-screen menus to test each subsystem's functionality
-
 ## Normal Mode
 ### Non-Blind Mode
 1. Ensure that all peripherals are powered on
@@ -47,24 +32,58 @@ The game of billiards, commonly known as pool, is enjoyed by millions of players
 4. Navigate to the CCU Final Application folder
     ```sh
     cd '.\CCU\Final_Application\'
+    ```
+
 5. Run the main program without any arguments
     ```sh
     python3 .\SCRATCH.py
     ```
+
 6. Follow the audio prompts played on the HUD to enter non-blind mode
 
+<br>
+
 ### Blind Mode
+1. Ensure that all peripherals are powered on
+2. Assist the blind user in putting the HUD on their head
+3. Place both the cue stick and glove flat on the cue table
+4. Have the blind user place their hands on the cue stick buttons and glove in order for them to start using SCRATCH
+5. Navigate to the CCU Final Application folder
+    ```sh
+    cd '.\CCU\Final_Application\'
+    ```
 
+6. Run the main program without any arguments
+    ```sh
+    python .\SCRATCH.py
+    ```
+7. Follow the audio prompts played on the HUD to enter blind mode
 
+<br>
 
+## Debug Mode<br>
+1. Ensure that all peripherals are powered on and are laying flat on the table
+2. Navigate to the CCU Final Application folder
+    ```sh
+    cd '.\CCU\Final_Application\'
+3. Run the main program with the debug flag
+    ```sh
+    python .\SCRATCH --d
+    ```
+    or
 
+    ```sh
+    python .\SCRATCH --debug
+    ```
+4. Use the on-screen menus to test each subsystem's functionality
+<br><br>
+
+## Other Arguments<br>
+1. List available arguments: ```--help``` or ```--h ```
+
+2. Enter demo mode: ```--demo```
+3. Enable real connection to VISION: ```--VISION```  or ```--V```
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-
-
-
 
 <!-- CONTACT -->
 ## Contact
