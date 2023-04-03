@@ -413,4 +413,3 @@ if __name__ == '__main__':
             print("ERROR - IDK how we got here")
 
         print("Finished running SCRATCH... goodbye")
-        return

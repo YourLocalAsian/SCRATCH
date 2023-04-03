@@ -39,12 +39,7 @@ def debug_menu():
         else:
             print("ERROR - Invalid selection\n")
             
-        print("\nSubsystem Selection:")
-        print("1. HUD")
-        print("2. Cue Stick")
-        print("3. Glove")
-        print("4. Exit")
-        val = input("\nSelection: ")
+    print("Exiting debug mode, to test other subsystems rerun --debug")
     
     return
 
@@ -52,7 +47,7 @@ def debug_menu():
 def debug_HUD():
     connect_to_HUD(debug=True)
 
-    while (not globals.HUD_connected and globals.callbacks_set < 1):
+    while (not globals.HUD_connected or globals.callbacks_set < 1):
         print("Waiting for HUD to fully connect...")
         time.sleep(1)
 
@@ -204,6 +199,9 @@ def test_camera():
 # Stick Debug Functions
 def debug_stick():
     connect_to_stick()
+
+    while (not globals.stick_connected or globals.callbacks_set < 6):
+        time.sleep(1)
     
     print("\nCue Stick Selection:")
     print("1. IMU")
@@ -295,7 +293,7 @@ def test_buttons():
 def debug_glove():
     connect_to_glove()
 
-    while (not globals.glove_connected):
+    while (not globals.glove_connected or globals.callbacks_set < 2):
         time.sleep(1)
     
     print("\nGlove Selection:")
