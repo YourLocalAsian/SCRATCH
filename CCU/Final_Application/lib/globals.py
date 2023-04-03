@@ -48,6 +48,7 @@ VISION_angle_char = None
 VISION_strength_char = None
 VISION_next_shot_char = None
 VISION_notification_cb_set = False
+VISION_simulated = True
 
 # CCU State Variables
 user_impaired = False

@@ -21,23 +21,23 @@ def set_impaired():
 
     # play audio asking for impairness
     globals.HUD_audio_char.write_value(constants.ASK_IMPAIRED.to_bytes(1, byteorder='big', signed = False))
-    print("\tChecking if user is impaired:")
+
     x = 0
     for x in range(5):
         if globals.new_stick_button_received:
             globals.user_impaired = True
             globals.new_stick_button_received = False
             break
-        print(f"\tSecond {x}")
+        print(f"\t Second {x}")
         time.sleep(1)   
 
     # play audio confirming choice
     if globals.user_impaired:
         globals.HUD_mode_char.write_value(constants.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
-        print("Selection - User is impaired\n")
+        print("\tUser is impaired\n")
     else:
         globals.HUD_mode_char.write_value(constants.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
-        print("Selection - User is not impaired\n")
+        print("\tUser is not impaired\n")
     
     time.sleep(2)
 
@@ -54,6 +54,7 @@ def set_operating_mode():
 
     if globals.user_impaired == True: # only option when blind mode is game mode
         globals.operation_mode = constants.OperatingMode.GAME
+        print("\tGame Mode selected\n")
         time.sleep(2)
         globals.stick_fsm_char.write_value(constants.StickStates.SET_BLD.to_bytes(1, byteorder='big', signed = False))
         globals.HUD_audio_char.write_value(constants.CUE_CALIBRATED.to_bytes(1, byteorder='big', signed = False))
@@ -62,7 +63,6 @@ def set_operating_mode():
     
     else:
         # wait for user selection
-        print("Checking operating mode:")
         time.sleep(2)  
         x = 0
         for x in range(5):
@@ -70,7 +70,7 @@ def set_operating_mode():
                 mode = 4
                 globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? Also don't know why this one
                 globals.operation_mode = constants.OperatingMode.TRAINING
-                print("Training Mode selected\n")
+                print("\tTraining Mode selected\n")
                 #globals.HUD_audio_char.write_value(constants.ENTERING_TM.to_bytes(1, byteorder='big', signed = False))
                 time.sleep(4)
                 #globals.HUD_audio_char.write_value(constants.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
@@ -81,14 +81,14 @@ def set_operating_mode():
                 time.sleep(5)    
                 return
             
-            print(f"\tSecond {x}")
+            print(f"\t Second {x}")
             time.sleep(1)
             
     globals.operation_mode = constants.OperatingMode.GAME
     globals.new_stick_button_received = False
     mode = 3 
     globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False)) # ? IDK why this send is here
-    print("Game Mode selected\n")
+    print("\tGame Mode selected\n")
     #globals.HUD_audio_char.write_value(constants.ENTERING_GM.to_bytes(1, byteorder='big', signed = False)) # Send game mode
     time.sleep(4)
     #globals.HUD_audio_char.write_value(constants.CALIBRATE_CUE.to_bytes(1, byteorder='big', signed = False))
@@ -103,61 +103,67 @@ def set_operating_mode():
 # Game Mode Functions
 def game_mode(angle, strength): # Called continously until shot is completed
     debug_print = True
+
+    try:    
+        # Check if game completed
+        if strength > 100: # strength is set to max value when game is completed 
+            if debug_print:
+                print("Game completed")
+            return
         
-    # Check if game completed
-    if strength > 100: # strength is set to max value when game is completed 
-        if debug_print:
-            print("Game completed")
-        return
-    
-    # Check if ongoing game
-    elif strength > 0: # strength is positive during on going game
-        # User Shot Attempt
-        if globals.user_impaired:
+        # Check if ongoing game
+        elif strength > 0: # strength is positive during on going game
+            # User Shot Attempt
+            if globals.user_impaired:
+                if debug_print:
+                    print("Calling blind user shot attempt")
+                shot_attempt_bld(angle, strength)
+            else:
+                if debug_print:
+                    print("Calling standard user shot attempt")
+                shot_attempt_std(0, 0, strength)
+        
+        else: # strength is negative when starting a game
+            print("Welcome to Game Mode")
+            print("--------------------")
+            
+            # Ensure connection to VISION has been established
+            while (globals.VISION_connected == False):
+                print("Waiting for connection to VISION... sleeping for 1s")
+                time.sleep(1)
             if debug_print:
-                print("Calling blind user shot attempt")
-            shot_attempt_bld(angle, strength)
+                print("Connection to VISION verified")
+
+        # Request next shot
+        if globals.VISION_simulated:
+            print("VISION simulated, generating shot data")
         else:
-            if debug_print:
-                print("Calling standard user shot attempt")
-            shot_attempt_std(0, 0, strength)
-    
-    else: # strength is negative when starting a game
-        print("Welcome to Game Mode")
-        # Ensure connection to VISION has been established
-        while (globals.VISION_connected == False):
-            print("Waiting for connection to VISION, sleeping for 1s")
-            time.sleep(1)
+            print("Asking VISION for next shot")
+
+        # Wait for shot data
+        if not globals.VISION_simulated:
+            print("Waiting for shot data from VISION")
+
+        # Receive and parse shot data
+        if not globals.VISION_simulated:
+            print("Shot data received")
+
+        if globals.demo_mode:
+            p_angle = constants.A_ARRAY[globals.demo_counter]
+            p_strength = constants.S_ARRAY[globals.demo_counter]
+            globals.demo_counter = (globals.demo_counter + 1) % 3
+        else:            
+            p_angle = random.randint(-180, 180)
+            p_strength = random.randint(0,5)
+        
+        # Make recursive call
         if debug_print:
-            print("Connection to VISION verified")
-
-    # Request next shot
-    if debug_print:
-        print("Asking VISION for next shot")
-
-    # Wait for shot data
-    if debug_print:
-        print("Waiting for shot data")
-
-    # Receive and parse shot data
-    if debug_print:
-        print("Shot data received")
-
-    if globals.demo_mode:
-        p_angle = constants.A_ARRAY[globals.demo_counter]
-        p_strength = constants.S_ARRAY[globals.demo_counter]
-        globals.demo_counter = (globals.demo_counter + 1) % 3
-    else:            
-        p_angle = random.randint(-180, 180)
-        p_strength = random.randint(0,5)
+            print("Making recursive call to game_mode()")
+        
+        game_mode(p_angle, p_strength)
     
-    # Make recursive call
-    if debug_print:
-        print("Making recursive call to game_mode()")
-    
-    game_mode(p_angle, p_strength)
-
-    return
+    except KeyboardInterrupt:
+        game_mode(0, 100) # Setting strength to 100 completes the game
 
 # Training Mode Functions
 def training_mode(shot_x, shot_y, strength):
@@ -353,6 +359,8 @@ if __name__ == '__main__':
             Debug.help_info()
         elif (sys.argv[1] == "--d" or sys.argv[1] == "--debug"):
             Debug.debug_menu()
+        elif (sys.argv[1] == "--V" or sys.argv[1] == "--VISION"):
+            globals.VISION_simulated = False 
         else:
             print("ERROR - unknown argument used")
     else:
@@ -362,7 +370,8 @@ if __name__ == '__main__':
         else: 
             print("Welcome to SCRATCH\n")
         
-        connect_to_everything() # Connect to all peripherals
+        # Connect to all peripherals
+        connect_to_everything() 
         
         while (not globals.HUD_connected or not globals.stick_connected or not globals.glove_connected):
             if not globals.HUD_connected:
@@ -377,31 +386,31 @@ if __name__ == '__main__':
         while (globals.callbacks_set < 9):
             time.sleep(1)
         
+        # Set stick to STANBY_MODE
         globals.stick_fsm_char.write_value(constants.StickStates.SET_SB.to_bytes(1, byteorder='big', signed = False))
 
-        #globals.HUD_audio_char.write_value(constants.WELCOME.to_bytes(1, byteorder='big', signed = False)) # Welcome to SCRATCH
-        #time.sleep(2)
-
         # Determine blind vs not blind
+        print("Checking if user is impaired...")
         set_impaired()
-        print(f"Impairedness set:", globals.user_impaired, "\n")
         time.sleep(5)
 
         # Determine Game Mode VS Training Mode
+        print("Checking operating mode...")
         set_operating_mode()
-        print(f"Operating mode set:", globals.operation_mode, "\n")
-
+        print("")
+        
         # Normal Operation
         if globals.operation_mode == constants.OperatingMode.GAME:
-            print("Calling game_mode")
+            print("Entering game_mode\n")
             game_mode(0, -1)
         elif globals.operation_mode == constants.OperatingMode.TRAINING:
             if globals.user_impaired == False:
-                print("Calling training_mode")
+                print("Entering training_mode\n")
                 training_mode(0, 0, 0)
             elif globals.user_impaired == True:
                 print("ERROR - blind user cannot enter training mode")
         else:
             print("ERROR - IDK how we got here")
 
-        print("Finished")
+        print("Finished running SCRATCH... goodbye")
+        return
