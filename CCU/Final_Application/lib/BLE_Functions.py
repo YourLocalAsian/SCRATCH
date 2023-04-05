@@ -368,3 +368,16 @@ def glove_on_disconnect():
                 #print(f"Just started thread {bt_thread}")
                 break
         break
+
+# Helper Functions
+def send_data(characteristic, value, byte_num, is_signed):
+    try:
+        characteristic.write_value(value.to_bytes(byte_num, byteorder='big', signed = is_signed))
+    except adapter.dbus.DBusException:
+        print("DBusException caught - attempting to reconnect")
+        on_disconnect()
+        while not globals.HUD_connected or not globals.stick_connected or not globals.glove_connected:
+            continue
+        characteristic.write_value(value.to_bytes(byte_num, byteorder='big', signed = is_signed))
+    
+    return

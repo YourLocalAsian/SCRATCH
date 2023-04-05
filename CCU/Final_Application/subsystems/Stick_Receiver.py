@@ -215,7 +215,7 @@ def check_stick_pitch():
                 time.sleep(1)
             # Send audio cue
             prompt = constants.AIM_LOWER
-            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            send_data(globals.HUD_audio_char, prompt, 1, False)
             #time.sleep(2)
         else:
             if debug_print:
@@ -223,7 +223,7 @@ def check_stick_pitch():
                 time.sleep(1)
             # Send audio cue
             prompt = constants.AIM_HIGHER
-            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            send_data(globals.HUD_audio_char, prompt, 1, False)
             #time.sleep(2)
 
         time.sleep(1)

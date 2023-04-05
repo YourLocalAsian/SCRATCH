@@ -87,7 +87,7 @@ def check_glove_zeroed():
         
         # Send audio cue to zero out glove
         prompt = constants.ZERO_OUT_GLOVE
-        globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+        send_data(globals.HUD_audio_char, prompt, 1, False)
         #time.sleep(2)
         globals.new_glove_angle_received = False # clear flag before proceeding
 
@@ -113,7 +113,7 @@ def check_glove_angle(desired_angle):
             
             # Send audio cue
             prompt = constants.TURN_LEFT
-            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            send_data(globals.HUD_audio_char, prompt, 1, False)
             #time.sleep(2)
         else:
             if debug_print:
@@ -121,7 +121,7 @@ def check_glove_angle(desired_angle):
             
             # Send audio cue
             prompt = constants.TURN_RIGHT
-            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            send_data(globals.HUD_audio_char, prompt, 1, False)
             #time.sleep(2)
         
         #time.sleep(1)
@@ -149,14 +149,14 @@ def check_glove_distance():
 
             # Send audio cue
             prompt = constants.MOVE_FORWARD
-            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            send_data(globals.HUD_audio_char, prompt, 1, False)
         else:
             if debug_print:
                 print("\t\tMove hand backward")
 
             # Send audio cue
             prompt = constants.MOVE_BACKWARD
-            globals.HUD_audio_char.write_value(prompt.to_bytes(1, byteorder='big', signed = False))
+            send_data(globals.HUD_audio_char, prompt, 1,False)
         
         #time.sleep(1)
         globals.new_glove_dist_received = False # clear flag before proceeding
