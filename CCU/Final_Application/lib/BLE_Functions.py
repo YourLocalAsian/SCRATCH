@@ -208,8 +208,8 @@ def connect_to_HUD(debug=False):
         if dev:
             print("HUD Found!")
             if debug:
-                bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
-                bt_thread.start()
+                globals.bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
+                globals.bt_thread.start()
             else:
                 connect_and_run(dev=dev,name='HUD',debug=debug)
             break
@@ -221,8 +221,8 @@ def connect_to_glove(debug=False):
         if dev:
             print("glove Found!")
             if debug:
-                bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
-                bt_thread.start()
+                globals.bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
+                globals.bt_thread.start()
             else:
                 connect_and_run(dev=dev,name='glove',debug=debug)
             break
@@ -233,8 +233,8 @@ def connect_to_stick():
     for dev in devices:
         if dev:
             print("stick Found!")
-            bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'stick'])
-            bt_thread.start()
+            globals.bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'stick'])
+            globals.bt_thread.start()
             #print( f"The thread is {bt_thread}")
             break
 
@@ -295,7 +295,6 @@ def HUD_on_disconnect():
         break
 
 def stick_on_disconnect():
-    global bt_thread
     """Disconnect from the remote device."""
     print('STICK Disconnected!')  
     print('Stopping notify')
@@ -326,9 +325,9 @@ def stick_on_disconnect():
         for dev in devices:
             if constants.STICK_SERVER_SRV.lower() in dev.uuids:
                 #print('Found our device!')
-                bt_thread = threading.Thread(target=connect_and_run, args=[dev, 'stick'])
-                bt_thread.start()
-                print(f"Just started thread {bt_thread}")
+                globals.bt_thread = threading.Thread(target=connect_and_run, args=[dev, 'stick'])
+                globals.bt_thread.start()
+                print(f"Just started thread {globals.bt_thread}")
                 break
         break
 
