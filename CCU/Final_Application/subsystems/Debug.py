@@ -26,22 +26,20 @@ def debug_menu():
     print("4. Exit")
     val = input("\nSelection: ")
 
-    while (val != 4):
-        if (val == '1'):
-            debug_HUD()
-        elif (val == '2'):
-            debug_stick()
-        elif (val == '3'):
-            debug_glove()
-        elif (val == '4'):
-            print("Exiting SCRATCH... goodbye")
-            sys.exit()
-        else:
-            print("ERROR - Invalid selection\n")
-            
-    print("Exiting debug mode, to test other subsystems rerun --debug")
+    if (val == '1'):
+        debug_HUD()
+    elif (val == '2'):
+        debug_stick()
+    elif (val == '3'):
+        debug_glove()
+    elif (val == '4'):
+        print("Why did you start to just immediately exit?")
+    else:
+        print("ERROR - Invalid selection\n")
     
+    print("Exiting debug mode, to test other subsystems rerun --debug")
     return
+
 
 # HUD Debug Functions
 def debug_HUD():
@@ -55,7 +53,7 @@ def debug_HUD():
     print("1. Display")
     print("2. Audio")
     print("3. Camera")
-    print("4. Go back to main menu")
+    print("4. Exit")
     val = input("\nSelection: ")
 
     while (val != 3):
@@ -66,6 +64,9 @@ def debug_HUD():
         elif (val == '3'):
             test_camera()
         elif (val == '4'):
+            globals.HUD_monitor.disconnect()
+            globals.HUD_monitor.quit()
+            print("Disconnected from the HUD successfully")
             return
         else:
             print("ERROR - Invalid selection\n")
@@ -74,7 +75,7 @@ def debug_HUD():
         print("1. Display")
         print("2. Audio")
         print("3. Camera")
-        print("4. Go back to main menu")
+        print("4. Exit")
         val = input("\nSelection: ")
 
 def test_display():
@@ -206,7 +207,7 @@ def debug_stick():
     print("\nCue Stick Selection:")
     print("1. IMU")
     print("2. Buttons")
-    print("3. Go back to main menu")
+    print("3. Exit")
     val = input("\nSelection: ")
 
     while (val != 3):
@@ -215,6 +216,9 @@ def debug_stick():
         elif (val == '2'):
             test_buttons()
         elif (val == '3'):
+            globals.stick_monitor.disconnect()
+            globals.stick_monitor.quit()
+            print("Disconnected from the cue stick successfully")
             return
         else:
             print("ERROR - Invalid selection\n")
@@ -222,7 +226,7 @@ def debug_stick():
         print("\nCue Stick Selection:")
         print("1. IMU")
         print("2. Buttons")
-        print("3. Go back to main menu")
+        print("3. Exit")
         val = input("\nSelection: ")
 
 def test_IMU():
@@ -300,7 +304,7 @@ def debug_glove():
     print("\nGlove Selection:")
     print("1. Distance")
     print("2. Angle")
-    print("3. Go back to main menu")
+    print("3. Exit")
     val = input("\nSelection: ")
 
     while (val != 3):
@@ -309,6 +313,9 @@ def debug_glove():
         elif (val == '2'):
             test_glove_angle()
         elif (val == '3'):
+            globals.glove_monitor.disconnect()
+            globals.glove_monitor.quit()
+            print("Disconnected from the glove successfully")
             return
         else:
             print("ERROR - Invalid selection\n")
@@ -316,7 +323,7 @@ def debug_glove():
         print("\nGlove Selection:")
         print("1. Distance")
         print("2. Angle")
-        print("3. Go back to main menu")
+        print("3. Exit")
         val = input("\nSelection: ")
 
 def test_glove_distance():

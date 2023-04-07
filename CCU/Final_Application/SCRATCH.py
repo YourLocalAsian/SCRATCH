@@ -351,18 +351,22 @@ def shot_attempt_bld(desired_angle, desired_strength):
     
     return
 
-if __name__ == '__main__':
+def main():
     argument_passed = True if len(sys.argv) > 1 else False
     
     if (argument_passed and not sys.argv[1] == "--demo"):
         if (sys.argv[1] == "--h" or sys.argv[1] == "--help"):
             Debug.help_info()
+            return
         elif (sys.argv[1] == "--d" or sys.argv[1] == "--debug"):
             Debug.debug_menu()
+            return
         elif (sys.argv[1] == "--V" or sys.argv[1] == "--VISION"):
             globals.VISION_simulated = False 
+            return
         else:
             print("ERROR - unknown argument used")
+            return
     else:
         if (argument_passed and sys.argv[1] == "--demo"):
             globals.demo_mode = True
@@ -411,5 +415,16 @@ if __name__ == '__main__':
                 print("ERROR - blind user cannot enter training mode")
         else:
             print("ERROR - IDK how we got here")
+        
+        # Disconnect from everything
+        globals.HUD_monitor.disconnect()
+        globals.HUD_monitor.quit()
+        globals.glove_monitor.disconnect()
+        globals.glove_monitor.quit()
+        globals.stick_monitor.disconnect()
+        globals.stick_monitor.quit()
 
         print("Finished running SCRATCH... goodbye")
+
+if __name__ == '__main__':
+    main()
