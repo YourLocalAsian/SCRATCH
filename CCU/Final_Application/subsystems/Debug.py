@@ -39,12 +39,7 @@ def debug_menu():
         else:
             print("ERROR - Invalid selection\n")
             
-        print("\nSubsystem Selection:")
-        print("1. HUD")
-        print("2. Cue Stick")
-        print("3. Glove")
-        print("4. Exit")
-        val = input("\nSelection: ")
+    print("Exiting debug mode, to test other subsystems rerun --debug")
     
     return
 
@@ -52,7 +47,8 @@ def debug_menu():
 def debug_HUD():
     connect_to_HUD(debug=True)
 
-    while (not globals.HUD_connected):
+    while (not globals.HUD_connected or globals.callbacks_set < 1):
+        print("Waiting for HUD to fully connect...")
         time.sleep(1)
 
     print("\nHUD Selection:")
@@ -82,37 +78,58 @@ def debug_HUD():
         val = input("\nSelection: ")
 
 def test_display():
+    # Set non-blind
+    globals.HUD_mode_char.write_value(constants.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
+    print("Setting HUD to non-blind mode, please wait...")
+    time.sleep(2)
+    
+    # Set to training mode
+    mode = 4
+    globals.HUD_mode_char.write_value(mode.to_bytes(1, byteorder='big', signed = False))
+    print("Entering training mode for testing, please wait...")
+    time.sleep(2)
+    
     print("Press Ctrl+C to exit testing")
     time.sleep(2)
     
     try:
         while True:
-            # Send random target
+            # Generate random target
             strength = random.randint(0,5)
             poi_x = random.randint(-15, 15)
             poi_y = random.randint(-15, 15)
 
+            # Send target
             globals.HUD_fsm_char.write_value(constants.HudStates.NB_TARGET.to_bytes(1, byteorder='big', signed = False))
             globals.HUD_power_char.write_value(strength.to_bytes(1, byteorder='big', signed = False))
             globals.HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
             globals.HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
             print(f"Sending target power, x and y to be: {strength}, {poi_x}, {poi_y}")
-            time.sleep(2)
+            print("Displaying target for 5s\n")
+            time.sleep(5)
 
+            # Generate random actual
             strength = random.randint(0,5)
             poi_x = random.randint(-15, 15)
             poi_y = random.randint(-15, 15)
 
+            # Send actual
             globals.HUD_fsm_char.write_value(constants.HudStates.ACTUAL.to_bytes(1, byteorder='big', signed = False))
             globals.HUD_power_char.write_value(strength.to_bytes(1, byteorder='big', signed = False))
             globals.HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))
             globals.HUD_poi_y_char.write_value(poi_y.to_bytes(4, byteorder='big', signed = True))
             print(f"Sending actual power, x and y to be: {strength}, {poi_x}, {poi_y}")
-            time.sleep(2)
+            print("Displaying actual for 5s\n")
+            time.sleep(5)
     except KeyboardInterrupt:
         return
 
 def test_audio():
+    # Set blind
+    globals.HUD_mode_char.write_value(constants.HudStates.BLIND.to_bytes(1, byteorder='big', signed = False))
+    print("Setting HUD to blind mode, please wait...")
+    time.sleep(2)
+    
     print("Press Ctrl+C to exit testing")
     time.sleep(2)
     
@@ -182,6 +199,9 @@ def test_camera():
 # Stick Debug Functions
 def debug_stick():
     connect_to_stick()
+
+    while (not globals.stick_connected or globals.callbacks_set < 6):
+        time.sleep(1)
     
     print("\nCue Stick Selection:")
     print("1. IMU")
@@ -271,9 +291,10 @@ def test_buttons():
 
 # Glove Debug Functions
 def debug_glove():
-    connect_to_glove()
+    connect_to_glove(debug=True)
 
-    while (not globals.glove_connected):
+    while (not globals.glove_connected or globals.callbacks_set < 2):
+        print(f"Number of callbacks set: {globals.callbacks_set}")
         time.sleep(1)
     
     print("\nGlove Selection:")
