@@ -221,7 +221,7 @@ def connect_to_glove(debug=False):
         if dev:
             print("glove Found!")
             if debug:
-                globals.bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'HUD', debug])
+                globals.bt_thread = threading.Thread(target=connect_and_run, args=[dev, None,'glove', debug])
                 globals.bt_thread.start()
             else:
                 connect_and_run(dev=dev,name='glove',debug=debug)

@@ -291,9 +291,10 @@ def test_buttons():
 
 # Glove Debug Functions
 def debug_glove():
-    connect_to_glove()
+    connect_to_glove(debug=True)
 
     while (not globals.glove_connected or globals.callbacks_set < 2):
+        print(f"Number of callbacks set: {globals.callbacks_set}")
         time.sleep(1)
     
     print("\nGlove Selection:")
