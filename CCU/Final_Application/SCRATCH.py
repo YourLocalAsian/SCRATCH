@@ -258,7 +258,7 @@ def shot_attempt_std(desired_x, desired_y, desired_strength):
     poi_x = int(globals.actual_x)
     poi_y = int(globals.actual_y)
     if debug_print:
-        print(f'\tSending actual to HUD: {pow}, {poi_x}, {poi_y}')
+        print(f'\tSending actual to HUD: {Stick_Receiver.ballSpeed[pow]}, {poi_x}, {poi_y}')
     globals.HUD_fsm_char.write_value(constants.HudStates.ACTUAL.to_bytes(1, byteorder='big', signed = False))
     globals.HUD_power_char.write_value(pow.to_bytes(1, byteorder='big', signed = False))
     globals.HUD_poi_x_char.write_value(poi_x.to_bytes(4, byteorder='big', signed = True))

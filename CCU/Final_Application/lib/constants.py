@@ -99,5 +99,5 @@ CUE_CALIBRATED = 27
 # Cherry-Picked Shots
 X_ARRAY = [  0, -12,  8]
 Y_ARRAY = [-10,   2, -5]
-A_ARRAY = [-12,  21,  0]
+A_ARRAY = [-45,  22,  0]
 S_ARRAY = [  1,   2,  3]

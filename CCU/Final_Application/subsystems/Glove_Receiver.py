@@ -100,7 +100,7 @@ def check_glove_angle(desired_angle):
 
     globals.new_glove_angle_received = False # initialize flag
 
-    while abs(angle - desired_angle) > constants.ANGLE_THRESHOLD:
+    while angle != desired_angle:
         while (globals.new_glove_angle_received == False): # block until new glove angle received
             continue
 
