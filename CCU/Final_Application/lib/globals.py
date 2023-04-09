@@ -44,10 +44,11 @@ stick_notification_cb_set = False
 stick_received_acceleration = []
 
 # TODO: make BLE characteristics for VISION communication
-VISION_angle_char = None
-VISION_strength_char = None
-VISION_next_shot_char = None
-VISION_notification_cb_set = False
+VISION_mqtt = None
+mqtt_payload = None
+mqtt_angle = 0
+mqtt_strength = 0
+mqtt_turn = 0 # 0 means it's VISION's turn to send
 VISION_simulated = True
 
 # CCU State Variables

@@ -139,20 +139,27 @@ def game_mode(angle, strength): # Called continously until shot is completed
             print("VISION simulated, generating shot data")
         else:
             print("Asking VISION for next shot")
+            globals.VISION_mqtt.publish("t/sd/scratch","start")
+            globals.mqtt_turn = 0
 
         # Wait for shot data
         if not globals.VISION_simulated:
-            print("Waiting for shot data from VISION")
-
+            while globals.mqtt_turn == 1:
+                print("Waiting for shot data from VISION... sleeping for 1s")
+                time.sleep(1)
+        
         # Receive and parse shot data
         if not globals.VISION_simulated:
-            print("Shot data received")
-
-        if globals.demo_mode:
+            print("Shot data received from VISION")
+            p_angle = globals.mqtt_angle
+            p_strength = globals.mqtt_strength
+        elif globals.demo_mode:
+            print("Using demo shot data")
             p_angle = constants.A_ARRAY[globals.demo_counter]
             p_strength = constants.S_ARRAY[globals.demo_counter]
             globals.demo_counter = (globals.demo_counter + 1) % 3
         else:            
+            print("Generating random shot data")
             p_angle = random.randint(-180, 180)
             p_strength = random.randint(0,5)
         
@@ -360,7 +367,8 @@ if __name__ == '__main__':
         elif (sys.argv[1] == "--d" or sys.argv[1] == "--debug"):
             Debug.debug_menu()
         elif (sys.argv[1] == "--V" or sys.argv[1] == "--VISION"):
-            globals.VISION_simulated = False 
+            globals.VISION_simulated = False
+            globals.VISION_connected = False
         else:
             print("ERROR - unknown argument used")
     else:
